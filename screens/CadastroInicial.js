@@ -21,17 +21,17 @@ export default function CadastroScreen() {
         <Text style={styles.title}>Cadastrar {" "} <Image source={require("../assets/patinha-login.png")} 
                 style={styles.pawIcon}/>
                 </Text>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CadastroUser')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Usuario')}>
           <LinearGradient colors={['#F66B89', '#9C127C']} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>Usuário</Text>
           </LinearGradient>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CadastroOng')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Ongs')}>
           <LinearGradient colors={['#F66B89', '#9C127C']} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>ONG</Text>
           </LinearGradient>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CadastroClinica')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Clinica')}>
           <LinearGradient colors={['#F66B89', '#9C127C']} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>Clínica</Text>
           </LinearGradient>
