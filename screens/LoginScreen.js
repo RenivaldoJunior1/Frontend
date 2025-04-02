@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView
+  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, Alert, 
+  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function LoginScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const navigation = useNavigation();
 
   const validarEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validarSenha = (senha) => senha.length >= 6;
@@ -27,11 +29,26 @@ export default function LoginScreen() {
       alert('A senha deve ter pelo menos 6 caracteres!');
       return;
     }
+
     try {
+      // Simulação de autenticação - substitua por sua lógica real
       const usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
       const usuarioValido = usuarios.find(user => user.email === email && user.senha === senha);
+
       if (usuarioValido) {
+        // Salvar dados do usuário no AsyncStorage
+        const userData = {
+          id: usuarioValido.id,
+          name: usuarioValido.nome,
+          email: usuarioValido.email,
+          phone: usuarioValido.telefone || '',
+          photo: usuarioValido.photo || null,
+          type: usuarioValido.tipoCadastro || 'user' // 'user', 'ong' ou 'clinic'
+        };
+        
+        await AsyncStorage.setItem('currentUser', JSON.stringify(userData));
         await AsyncStorage.setItem('userType', usuarioValido.tipoCadastro);
+
         alert('Aguardando código de validação!');
         navigation.navigate('Validacao');
       } else {
@@ -107,25 +124,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF4EC',
     alignItems: 'center'
   },
-
   header: { 
     marginTop: 90,
     alignItems: 'center',
     marginBottom: 50
   },
-
   logo: { 
     width: 300,
     height: 150, 
     resizeMode: 'contain'
   },
-
   subtitle: { 
     fontSize: 15, 
     color: '#f45b74', 
     fontWeight: 'Poppins'
   },
-
   gradient: { 
     flex: 1, 
     width: '100%', 
@@ -134,33 +147,28 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25, 
     borderTopRightRadius: 25
   },
-
   titleContainer:{
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'center'
   },
-
   title: { 
     fontSize: 30, 
     fontWeight: 'ABeeZee', 
     color: '#FFFFFF', 
     marginBottom: 12,
   },
-
   inputContainer: { 
     width: '90%', 
     marginBottom: 15, 
     alignItems: 'flex-start'
   },
-
   label: { 
     fontSize: 16, 
     color: '#FFFFFF', 
     marginBottom: 10, 
     fontWeight: 'ABeeZee'
   },
-
   input: { 
     width: '100%', 
     backgroundColor: '#FFFFFF', 
@@ -169,7 +177,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
   },
-
   button: { 
     backgroundColor: '#B2BC29', 
     paddingVertical: 15, 
@@ -178,27 +185,23 @@ const styles = StyleSheet.create({
     marginTop: 20, 
     alignItems: 'center'
   },
-
   buttonText: { 
     color: '#ffffff', 
     fontSize: 18, 
     fontWeight: 'Poppins'
   },
-
   forgotPassword: { 
     marginTop: 15, 
     color: '#FFFFFF', 
     fontSize: 14, 
     textAlign: 'center'
   },
-
   registerText: { 
     marginTop: 10, 
     color: '#FFFFFF', 
     fontSize: 14, 
     textAlign: 'center'
   },
-
   pawIcon: {
     marginLeft: 1,
     width: 35,
@@ -206,7 +209,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: 25,
   },
-
   bold:{
     fontWeight: 'bold',
   }
