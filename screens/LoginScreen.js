@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView
+  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, 
+  KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -11,38 +12,61 @@ export default function LoginScreen() {
   const [senha, setSenha] = useState('');
   const navigation = useNavigation();
 
-  const validarEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validarSenha = (senha) => senha.length >= 6;
-
   const handleLogin = async () => {
     if (!email || !senha) {
-      alert('Preencha todos os campos!');
+      Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
     }
-    if (!validarEmail(email)) {
-      alert('Por favor, insira um e-mail válido!');
-      return;
-    }
-    if (!validarSenha(senha)) {
-      alert('A senha deve ter pelo menos 6 caracteres!');
-      return;
-    }
+  
     try {
+      // Busca todos os tipos de usuários possíveis
+      const clinicaPerfil = JSON.parse(await AsyncStorage.getItem('clinicaPerfil')) || null;
       const usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
-      const usuarioValido = usuarios.find(user => user.email === email && user.senha === senha);
-      if (usuarioValido) {
-        await AsyncStorage.setItem('userType', usuarioValido.tipoCadastro);
-        alert('Aguardando código de validação!');
-        navigation.navigate('Validacao');
+      const ongs = JSON.parse(await AsyncStorage.getItem('ongs')) || [];
+
+      // Verifica em todas as possíveis fontes de autenticação
+      let usuarioAutenticado = null;
+      let tipoCadastro = '';
+
+      // 1. Verifica no cadastro de clínica/ONG (que você está usando no CadastroClinica)
+      if (clinicaPerfil && clinicaPerfil.email === email && clinicaPerfil.senha === senha) {
+        usuarioAutenticado = clinicaPerfil;
+        tipoCadastro = clinicaPerfil.tipoCadastro || 'ONG';
+      }
+      // 2. Verifica na lista de usuários comuns
+      else {
+        const usuarioValido = usuarios.find(user => user.email === email && user.senha === senha);
+        if (usuarioValido) {
+          usuarioAutenticado = usuarioValido;
+          tipoCadastro = usuarioValido.tipoCadastro || 'default';
+        }
+        // 3. Verifica na lista de ONGs (se você usar essa chave no futuro)
+        else {
+          const ongValida = ongs.find(ong => ong.email === email && ong.senha === senha);
+          if (ongValida) {
+            usuarioAutenticado = ongValida;
+            tipoCadastro = 'ONG';
+          }
+        }
+      }
+
+      if (usuarioAutenticado) {
+        // Salva as informações da sessão
+        await AsyncStorage.setItem('tipoCadastro', tipoCadastro);
+        await AsyncStorage.setItem('usuarioAtual', JSON.stringify(usuarioAutenticado));
+        
+        Alert.alert('Sucesso', `Login realizado como ${tipoCadastro}!`);
+        navigation.navigate('Home', { tipoCadastro });
       } else {
-        alert('Email ou senha incorretos!');
+        Alert.alert('Erro', 'Email ou senha incorretos!');
       }
     } catch (error) {
-      alert('Não foi possível fazer login.');
+      Alert.alert('Erro', 'Não foi possível fazer login.');
       console.error("Erro ao acessar o AsyncStorage:", error);
     }
   };
 
+  // O restante do seu componente permanece igual...
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -90,7 +114,7 @@ export default function LoginScreen() {
               <TouchableOpacity onPress={() => navigation.navigate('EsqueceuSenha')}>
                 <Text style={styles.forgotPassword}>Esqueceu sua senha?</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Inicial')}>
                 <Text style={styles.registerText}>Não possui uma conta? <Text style={styles.bold}>Cadastre-se</Text></Text>
               </TouchableOpacity>
             </LinearGradient>
@@ -101,12 +125,14 @@ export default function LoginScreen() {
   );
 }
 
+// Seus estilos permanecem os mesmos...
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
     backgroundColor: '#FFF4EC',
     alignItems: 'center'
   },
+  // ... (mantenha o resto dos estilos igual)
 
   header: { 
     marginTop: 90,
@@ -121,9 +147,11 @@ const styles = StyleSheet.create({
   },
 
   subtitle: { 
-    fontSize: 15, 
+    fontSize: 20, 
     color: '#f45b74', 
-    fontWeight: 'Poppins'
+    fontWeight: 'Poppins', 
+    resizeMode: 'contain',
+    marginTop: -38,
   },
 
   gradient: { 
@@ -142,10 +170,11 @@ const styles = StyleSheet.create({
   },
 
   title: { 
-    fontSize: 30, 
+    fontSize: 35, 
     fontWeight: 'ABeeZee', 
     color: '#FFFFFF', 
     marginBottom: 12,
+    left: 15
   },
 
   inputContainer: { 
@@ -158,7 +187,8 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     color: '#FFFFFF', 
     marginBottom: 10, 
-    fontWeight: 'ABeeZee'
+    fontWeight: 'ABeeZee',
+    marginLeft:15,
   },
 
   input: { 
@@ -205,6 +235,7 @@ const styles = StyleSheet.create({
     height: 35,
     resizeMode: 'contain',
     marginBottom: 25,
+    left:15
   },
 
   bold:{

@@ -99,20 +99,16 @@ export default function CadastroScreen() {
       <ScrollView contentContainerStyle={[styles.content, isLargeScreen && styles.contentLarge]} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Cadastro</Text>
 
-        
-
-
         <View style={[styles.pickerContainer, isLargeScreen && styles.pickerContainerLarge]}>
           <Picker
             selectedValue={tipoCadastro}
             onValueChange={setTipoCadastro}
-            style={[styles.inputpicker]}
+            style={[styles.input, isLargeScreen && styles.inputLarge]}
           >
             <Picker.Item label="Usuário" value="usuario" />
             <Picker.Item label="ONG/Clínica" value="ong" />
           </Picker>
         </View>
-        
 
         <TextInput style={styles.input} placeholder="CPF" keyboardType="numeric" value={cpf} onChangeText={setCpf} />
 
@@ -169,15 +165,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   pickerContainer: {
-    
+    marginBottom: 15,
+    width: '100%',
   },
   pickerContainerLarge: {
-    
-  },
-  inputpicker:{
-    width: '80%',
-    alignSelf: 'center',
-   
+    marginTop: 20,
   },
   input: {
     height: 50,

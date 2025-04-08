@@ -3,9 +3,9 @@ import {
   View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image, Alert, 
   ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function CadastroUsuarioScreen() {
   const navigation = useNavigation();
@@ -15,69 +15,110 @@ export default function CadastroUsuarioScreen() {
   const [cidade, setCidade] = useState('');
   const [endereco, setEndereco] = useState('');
   const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
 
-  const handleCadastro = () => {
-    if (!cpf || !nome || !telefone || !cidade || !endereco || !email) {
+  const handleCadastro = async () => {
+    if (!cpf || !nome || !telefone || !cidade || !endereco || !email || !senha || !confirmarSenha) {
       Alert.alert('Atenção', 'Todos os campos são obrigatórios!');
       return;
     }
-    Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+  
+    if (senha !== confirmarSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem!');
+      return;
+    }
+  
+    // Verificação de senha com no mínimo 6 caracteres
+    if (senha.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+      return;
+    }
+  
+    try {
+      const novoUsuario = { cpf, nome, telefone, cidade, endereco, email, senha, tipoCadastro: 'usuario'};
+      
+      let usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
+      usuarios.push(novoUsuario);
+
+      await AsyncStorage.setItem('usuarios', JSON.stringify(usuarios));
+
+      console.log('Cadastro Salvo', novoUsuario);
+
+      Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+      navigation.navigate('Login');
+
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
+      console.error("Erro ao salvar no AsyncStorage:", error);
+    }
   };
-
+  
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Image source={require('../assets/Voltar.png')} style={styles.voltarImagem} />
-        </TouchableOpacity>
-
-        <View style={styles.header}>
-          <Image source={require('../assets/Logo 1 2.png')} style={styles.logo} />
-          <Text style={styles.subtitle}>Cadastre-se</Text>
-        </View>
-
-        <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.card}>
-          <KeyboardAwareScrollView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-            style={{ flex: 1 }}
-          >
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Image source={require('../assets/Voltar.png')} style={styles.voltarImagem} />
+          </TouchableOpacity>
+  
+          <View style={styles.header}>
+            <Image source={require('../assets/Logo 1 2.png')} style={styles.logo} />
+            <Text style={styles.subtitle}>Cadastre-se</Text>
+          </View>
+  
+          <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.card}>
             <ScrollView 
               contentContainerStyle={styles.scrollContent} 
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={styles.title}>Cadastro Usuário {" "} 
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>Cadastro de Usuário</Text>
                 <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
-              </Text>
-
-              {[
-                { label: 'CPF', value: cpf, setValue: setCpf, keyboardType: 'numeric' },
-                { label: 'Nome', value: nome, setValue: setNome, keyboardType: 'default' },
-                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric' },
-                { label: 'Cidade', value: cidade, setValue: setCidade, keyboardType: 'default' },
-                { label: 'Endereço', value: endereco, setValue: setEndereco, keyboardType: 'default' },
-                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' }
-              ].map((input, index) => (
-                <View key={index} style={styles.inputContainer}>
-                  <Text style={styles.label}>{input.label}</Text>
-                  <TextInput 
-                    style={styles.input} 
-                    placeholder={input.label} 
-                    value={input.value} 
-                    onChangeText={input.setValue} 
-                    keyboardType={input.keyboardType} 
-                  />
-                </View>
+              </View>
+              
+              {[{ label: 'CPF', value: cpf, setValue: setCpf, keyboardType: 'numeric', maxLength: 11 },
+                { label: 'Nome', value: nome, setValue: setNome },
+                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric', maxLength: 11 },
+                { label: 'Cidade', value: cidade, setValue: setCidade },
+                { label: 'Endereço', value: endereco, setValue: setEndereco },
+                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
+                { label: 'Senha', value: senha, setValue: setSenha, secureTextEntry: true, minLength: 6 },
+                { label: 'Confirmar Senha', value: confirmarSenha, setValue: setConfirmarSenha, secureTextEntry: true }].map((input, index) => (
+                  <View key={index} style={styles.inputContainer}>
+                    <Text style={styles.label}>{input.label}</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      placeholder={input.label} 
+                      value={input.value} 
+                      onChangeText={input.setValue} 
+                      keyboardType={input.keyboardType || 'default'}
+                      secureTextEntry={input.secureTextEntry || false}
+                      maxLength={input.maxLength}  // Limita o número de caracteres
+                      onBlur={() => {
+                        // Garantir que a senha tem no mínimo 6 caracteres
+                        if (input.label === 'Senha' && senha.length < 6) {
+                          Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+                        }
+                      }}
+                    />
+                  </View>
               ))}
-
+  
               <TouchableOpacity style={styles.button} onPress={handleCadastro}>
                 <Text style={styles.buttonText}>Cadastrar</Text>
               </TouchableOpacity>
             </ScrollView>
-          </KeyboardAwareScrollView>
-        </LinearGradient>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+          </LinearGradient>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>  
   );
+  
 }
 
 const styles = StyleSheet.create({
@@ -95,15 +136,10 @@ const styles = StyleSheet.create({
     marginTop: 30 
   },
 
-  backText: { 
-    fontSize: 24, 
-    color: '#000' 
-  },
-
   header: { 
-    marginTop: 100, 
+    marginTop: 90, 
     alignItems: 'center', 
-    marginBottom: 20 
+    marginBottom: 50 
   },
 
   logo: { 
@@ -113,17 +149,18 @@ const styles = StyleSheet.create({
   },
 
   subtitle: { 
-    fontSize: 15, 
+    fontSize: 20, 
     color: '#f45b74', 
-    fontWeight: 'Poppins' 
+    fontWeight: 'Poppins', 
+    marginTop: -40
   },
 
   card: { 
-    flex: 1,
+    flex: 1, 
     width: '100%', 
     padding: 20, 
     borderTopLeftRadius: 25, 
-    borderTopRightRadius: 25, 
+    borderTopRightRadius: 25 
   },
 
   scrollContent: { 
@@ -131,23 +168,31 @@ const styles = StyleSheet.create({
   },
 
   title: { 
-    fontSize: 22, 
+    fontSize: 30, 
     fontWeight: 'ABeeZee', 
     color: '#FFFFFF', 
-    marginBottom: 15, 
-    textAlign: 'center' 
+    marginBottom: 25,
+    marginTop: 30
   },
 
-  inputContainer: {
-    width: '100%',
+  pawIcon: {
+    marginLeft: 1,
+    width: 35,
+    height: 35,
+    resizeMode: 'contain',
     marginBottom: 10,
   },
 
-  label: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginBottom: 5,
-    marginLeft: 5, 
+  inputContainer: { 
+    width: '100%', 
+    marginBottom: 10 
+  },
+
+  label: { 
+    fontSize: 14, 
+    color: '#FFFFFF', 
+    marginBottom: 5, 
+    marginLeft: 20 
   },
 
   input: { 
@@ -156,28 +201,34 @@ const styles = StyleSheet.create({
     padding: 12, 
     borderRadius: 25, 
     fontSize: 16, 
-    color: '#000'
+    color: '#000' 
   },
 
   button: { 
     backgroundColor: '#B2BC29', 
     paddingVertical: 15, 
+    paddingHorizontal: 40, 
     borderRadius: 25, 
-    alignItems: 'center', 
-    width: '100%',
-    borderWidth: 2, 
-    borderColor: '#8A9A23',
-    position: 'relative',
-    marginTop: 12
+    marginTop: 20, 
+    alignItems: 'center',
+    width: '60%',
+    alignSelf: 'center',
+    elevation: 5
   },
 
   buttonText: { 
     color: '#ffffff', 
     fontSize: 18, 
-    fontWeight: 'Poppins' 
+    fontWeight: 'bold' 
   },
 
-  voltarImagem: {
-    marginTop: 25
-  }
+  voltarImagem: { 
+    marginTop: 25 
+  },
+
+  titleContainer:{
+    flexDirection:'row',
+    alignItems:'center',
+    justifyContent:'center'
+  },
 });

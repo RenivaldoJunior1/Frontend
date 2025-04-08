@@ -96,11 +96,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain'
    },
 
-  subtitle: { 
-    fontSize: 15, 
+   subtitle: { 
+    fontSize: 20, 
     color: '#f45b74', 
-    fontWeight: 'Poppins'
-   },
+    fontWeight: 'Poppins', 
+    resizeMode: 'contain',
+    marginTop: -40,
+  },
 
   gradient: {
     flex: 1,

@@ -1,162 +1,243 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image, Alert, 
-  Keyboard, TouchableWithoutFeedback 
+  View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image, Alert, 
+  ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Switch
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-export default function CadastroUsuarioScreen() {
+export default function CadastroClinicascreen() {
   const navigation = useNavigation();
-  const [cpf, setCpf] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [nome, setNome] = useState('');
-  const [nomeProprietario, setNomeProprietario] = useState('');
-  const [razaoSocial, setRazaoSocial] = useState('');
   const [telefone, setTelefone] = useState('');
   const [cidade, setCidade] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [razaoSocial, setRazaoSocial] = useState('');
+  const [nomeFantasia, setNomeFantasia] = useState('');
+  const [ofereceServico, setOfereceServico] = useState(false);
+  const [tipoServico, setTipoServico] = useState('');
   const [email, setEmail] = useState('');
-  const [ofereceServico, setOfereceServico] = useState('');
   const [site, setSite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
 
-  const handleCadastro = () => {
-    if (!cpf || !cnpj || !nome || !nomeProprietario || !razaoSocial || !telefone || !cidade || !endereco || !email || !ofereceServico || !site || !instagram || !facebook) {
-      Alert.alert('Atenção', 'Todos os campos são obrigatórios!');
+
+  const handleCadastro = async () => {
+    if (!cnpj || cnpj.length !== 14 || !telefone || telefone.length !== 11 || !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios corretamente!');
       return;
     }
-    Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+
+    if (senha !== confirmarSenha) {
+          Alert.alert('Erro', 'As senhas não coincidem!');
+          return;
+        }
+      
+        // Verificação de senha com no mínimo 6 caracteres
+        if (senha.length < 6) {
+          Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+          return;
+        }
+
+    try {
+      const novaClinica = { 
+        cnpj, 
+        nome, 
+        telefone, 
+        cidade, 
+        endereco, 
+        razaoSocial, 
+        nomeFantasia, 
+        ofereceServico, 
+        tipoServico: ofereceServico ? tipoServico : '',
+        email, 
+        site, 
+        instagram, 
+        facebook,
+        senha,
+        tipoCadastro: 'ONG' 
+      };
+
+      console.log("Dados a serem Salvos", novaClinica);
+      await AsyncStorage.setItem('clinica', JSON.stringify(novaClinica));
+
+      const saveData = await AsyncStorage.getItem('clinica')
+      console.log("Dados Salvos", saveData);
+
+      Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+      navigation.navigate('Login');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
+      console.error("Erro ao salvar no AsyncStorage:", error);
+    }
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Image source={require('../assets/Voltar.png')} style={styles.voltarImagem}/>
-        </TouchableOpacity>
-        
-        <View style={styles.header}>
-          <Image source={require('../assets/Logo 1 2.png')} style={styles.logo} />
-          <Text style={styles.subtitle}>Cadastre-se</Text>
-        </View>
-        
-        <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.card}>
-          <KeyboardAwareScrollView 
-            contentContainerStyle={styles.scrollContent} 
-            extraScrollHeight={100} 
-            enableOnAndroid={true} 
-            showsVerticalScrollIndicator={false} 
-          >
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Cadastro de Ong</Text>
-              <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
-            </View>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Image source={require('../assets/Voltar.png')} style={styles.voltarImagem} />
+          </TouchableOpacity>
 
-            {[
-              { label: 'CPF', value: cpf, setValue: setCpf, keyboardType: 'numeric' },
-              { label: 'CNPJ', value: cnpj, setValue: setCnpj, keyboardType: 'numeric' },
-              { label: 'Nome', value: nome, setValue: setNome, keyboardType: 'default' },
-              { label: 'Nome do Proprietário', value: nomeProprietario, setValue: setNomeProprietario, keyboardType: 'default' },
-              { label: 'Razão Social', value: razaoSocial, setValue: setRazaoSocial, keyboardType: 'default' },
-              { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric' },
-              { label: 'Cidade', value: cidade, setValue: setCidade, keyboardType: 'default' },
-              { label: 'Endereço', value: endereco, setValue: setEndereco, keyboardType: 'default' },
-              { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
-              { label: 'Oferece Serviço (Sim/Não)', value: ofereceServico, setValue: setOfereceServico, keyboardType: 'default' },
-              { label: 'Site', value: site, setValue: setSite, keyboardType: 'default' },
-              { label: 'Instagram', value: instagram, setValue: setInstagram, keyboardType: 'default' },
-              { label: 'Facebook', value: facebook, setValue: setFacebook, keyboardType: 'default' }
-            ].map((input, index) => (
-              <View key={index} style={styles.inputContainer}>
-                <Text style={styles.label}>{input.label}</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={input.value} 
-                  onChangeText={input.setValue} 
-                  keyboardType={input.keyboardType} 
-                />
+          <View style={styles.header}>
+            <Image source={require('../assets/Logo 1 2.png')} style={styles.logo} />
+            <Text style={styles.subtitle}>Cadastre-se</Text>
+          </View>
+
+          <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.card}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>Cadastro de ONG</Text>
+                <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
               </View>
-            ))}
+              {[{ label: 'CNPJ', value: cnpj, setValue: setCnpj, keyboardType: 'numeric' },
+                { label: 'Nome do Responsável', value: nome, setValue: setNome },
+                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric' },
+                { label: 'Cidade', value: cidade, setValue: setCidade },
+                { label: 'Endereço', value: endereco, setValue: setEndereco },
+                { label: 'Razão Social', value: razaoSocial, setValue: setRazaoSocial },
+                { label: 'Nome Fantasia', value: nomeFantasia, setValue: setNomeFantasia },
+                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
+                { label: 'Site', value: site, setValue: setSite },
+                { label: 'Instagram', value: instagram, setValue: setInstagram },
+                { label: 'Facebook', value: facebook, setValue: setFacebook },
+                { label: 'Senha', value: senha, setValue: setSenha, secureTextEntry: true, minLength: 6 },
+                { label: 'Confirmar Senha', value: confirmarSenha, setValue: setConfirmarSenha, secureTextEntry: true }].map((input, index) => (
+                  <View key={index} style={styles.inputContainer}>
+                    <Text style={styles.label}>{input.label}</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      placeholder={input.label} 
+                      value={input.value} 
+                      onChangeText={input.setValue} 
+                      keyboardType={input.keyboardType || 'default'}
+                      secureTextEntry={input.secureTextEntry || false}
+                      maxLength={input.maxLength}  // Limita o número de caracteres
+                      onBlur={() => {
+                      // Garantir que a senha tem no mínimo 6 caracteres
+                      if (input.label === 'Senha' && senha.length < 6) {
+                        Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+                      }
+                    }
+                  } 
+                    />
+                  </View>
+              ))}
 
-            <TouchableOpacity style={styles.button} onPress={handleCadastro}>
-              <Text style={styles.buttonText}>Cadastrar</Text>
-            </TouchableOpacity>
-          </KeyboardAwareScrollView>
-        </LinearGradient>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Oferece Serviço?</Text>
+                  <View style={styles.checkboxRow}>
+                    <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(true)}>
+                      <View style={[styles.checkboxBox, ofereceServico === true && styles.checkboxSelected]} />
+                      <Text style={styles.checkboxLabel}>Sim</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(false)}>
+                      <View style={[styles.checkboxBox, ofereceServico === false && styles.checkboxSelected]} />
+                      <Text style={styles.checkboxLabel}>Não</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                </View>
+
+{ofereceServico === true && (
+  <View style={styles.inputContainer}>
+    <Text style={styles.label}>Qual serviço?</Text>
+    <TextInput 
+      style={styles.input} 
+      placeholder='Digite o serviço oferecido' 
+      value={tipoServico} 
+      onChangeText={setTipoServico}
+    />
+  </View>
+)}
+
+              
+
+              <TouchableOpacity style={styles.button} onPress={handleCadastro}>
+                <Text style={styles.buttonText}>Cadastrar</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </LinearGradient>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1,
-    backgroundColor: '#FFF4EC',
-    alignItems: 'center'
+    flex: 1, 
+    backgroundColor: '#FFF4EC', 
+    alignItems: 'center' 
   },
 
   backButton: { 
     position: 'absolute', 
-    top: 20, 
-    left: 20, 
-    zIndex: 10 
+    top: 20, left: 20, 
+    zIndex: 10, 
+    marginTop: 30 
   },
 
   header: { 
-    marginTop: 100,
-    alignItems: 'center',
-    marginBottom: 30
+    marginTop: 90, 
+    alignItems: 'center', 
+    marginBottom: 50 
   },
 
   logo: { 
-    width: 300,
+    width: 300, 
     height: 150, 
-    resizeMode: 'contain'
+    resizeMode: 'contain' 
   },
 
   subtitle: { 
-    fontSize: 15, 
+    fontSize: 20, 
     color: '#f45b74', 
-    fontWeight: 'Poppins'
+    fontWeight: 'Poppins', 
+    marginTop: -40
   },
-
   card: { 
-    flex: 1,
+    flex: 1, 
     width: '100%', 
     padding: 20, 
     borderTopLeftRadius: 25, 
-    borderTopRightRadius: 25, 
+    borderTopRightRadius: 25 
   },
 
-  scrollContent: {
-    paddingBottom: 20
+  scrollContent: { 
+    paddingBottom: 30 
   },
 
-  titleContainer: {
+  titleContainer:{
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'center'
   },
 
   title: { 
-    fontSize: 25, 
+    fontSize: 30, 
     fontWeight: 'ABeeZee', 
     color: '#FFFFFF', 
-    marginBottom: 12,
+    marginBottom: 25,
+    marginTop: 30
   },
 
-  inputContainer: {
-    width: '100%',
-    marginBottom: 10,
+  inputContainer: { 
+    width: '100%', 
+    marginBottom: 10 
   },
 
-  label: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    marginBottom: 5,
+  label: { 
+    fontSize: 14, 
+    color: '#FFFFFF', 
+    marginBottom: 5, 
+    marginLeft: 15 
   },
 
   input: { 
@@ -165,15 +246,17 @@ const styles = StyleSheet.create({
     padding: 12, 
     borderRadius: 25, 
     fontSize: 16, 
-    color: '#000'
+    color: '#000' 
   },
-
   button: { 
     backgroundColor: '#B2BC29', 
-    paddingVertical: 20, 
+    paddingVertical: 15, 
+    paddingHorizontal: 40, 
     borderRadius: 25, 
+    marginTop: 20, 
     alignItems: 'center',
-    marginTop: 20
+    width: '60%',
+    alignSelf: 'center'
   },
 
   buttonText: { 
@@ -183,11 +266,48 @@ const styles = StyleSheet.create({
   },
 
   voltarImagem: {
-    marginTop: 30
+    marginTop: 25 
   },
 
   pawIcon: {
-    marginTop: 10,
-    marginBottom: 25,
+    marginLeft: 1,
+    width: 35,
+    height: 35,
+    resizeMode: 'contain',
+    marginBottom: 10,
   },
+
+  checkboxRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: 20,
+    marginTop: 10,
+  },
+  
+  checkboxItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  checkboxBox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    marginRight: 8,
+    backgroundColor: '#fff',
+  },
+  
+  checkboxSelected: {
+    backgroundColor: '#3C55D2',
+    borderColor: '#3C55D2',
+  },
+  
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#fff',
+  }
+  
 });

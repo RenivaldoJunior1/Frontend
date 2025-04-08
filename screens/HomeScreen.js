@@ -1,55 +1,92 @@
-import React, { useEffect, useState } from 'react'; // Importando hooks necessários
-import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Importando o AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
-import logoImg from '../assets/icon.png';
-import profileImg from '../assets/icon.png';
-import bellIcon from '../assets/icon.png';
-import categoryImg from '../assets/icon.png';
-import recommendationImg from '../assets/icon.png';
+import logoImg from '../assets/patinha +.png';
+import profileImg from '../assets/patinha +.png';
+import bellIcon from '../assets/patinha +.png';
+import categoryImg from '../assets/patinha +.png';
+import recommendationImg from '../assets/patinha +.png';
 import homeIcon from '../assets/Home.png';
 import adoptionIcon from '../assets/patinha.png';
 import alertIcon from '../assets/Flag.png';
 import messagesIcon from '../assets/Mail.png';
-import menuIcon from '../assets/icon.png';
+import menuIcon from '../assets/patinha +.png';
 
 const { width } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const [userType, setUserType] = useState(''); // Inicialize o estado com uma string vazia
+  const [userType, setUserType] = useState('');
+  const [userData, setUserData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Função para carregar o tipo de usuário armazenado no AsyncStorage
-  const loadUserType = async () => {
+  const loadUserData = async () => {
     try {
       const storedUserType = await AsyncStorage.getItem('userType');
-      console.log('Tipo de usuário armazenado:', storedUserType); // Verifique se o tipo de usuário é "ong"
-      if (storedUserType) {
-        setUserType(storedUserType); // Atualiza o estado com o tipo de usuário
-      }
+      const userJson = await AsyncStorage.getItem('currentUser');
+      
+      if (storedUserType) setUserType(storedUserType);
+      if (userJson) setUserData(JSON.parse(userJson));
     } catch (error) {
-      console.error('Erro ao carregar o tipo de usuário:', error);
+      console.error('Erro ao carregar dados:', error);
     }
   };
 
-  // Carrega o tipo de usuário quando a tela for montada
   useEffect(() => {
-    loadUserType();
-  }, []);
+    const loadUserData = async () => {
+      try {
+        const storedUserType = await AsyncStorage.getItem('tipoCadastro');
+        const userJson = await AsyncStorage.getItem('currentUser');
 
-  console.log('userType:', userType); 
+        console.log('UserType carregado', storedUserType);
+  
+        if (storedUserType) {
+          const trimmedUserType = storedUserType.trim().toLowerCase();
+          setUserType(trimmedUserType); // Garantindo que esteja sempre em minúsculas e sem espaços
+        }
+  
+        if (userJson) setUserData(JSON.parse(userJson));
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      }
+    };
+  
+    loadUserData();
+  }, []);
 
   return (
     <Container>
       <Header>
-        <HeaderImage source={logoImg} resizeMode="contain" />
-        <ProfileContainer>
-          <ProfileImage source={profileImg} resizeMode="cover" />
-          <UserText>Olá, Fulana!</UserText>
+        <HeaderContent>
+          <HeaderImage source={logoImg} resizeMode="contain" />
+          
+          <SearchContainer>
+            <Ionicons name="search" size={18} color="#666" style={styles.searchIcon} />
+            <SearchInput
+              placeholder="Buscar pets..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#999"
+            />
+          </SearchContainer>
+          
+          <ProfileButton onPress={() => navigation.navigate('Perfil')}>
+            {userData?.photo ? (
+              <ProfileImage source={{ uri: userData.photo }} />
+            ) : (
+              <Ionicons name="person-circle" size={32} color="#FFF" />
+            )}
+          </ProfileButton>
+        </HeaderContent>
+        
+        <WelcomeContainer>
+          <UserText>Olá, {userData?.name || 'Usuário'} ({userType})!</UserText>
           <BellIcon source={bellIcon} resizeMode="contain" />
-        </ProfileContainer>
+        </WelcomeContainer>
       </Header>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
@@ -59,12 +96,11 @@ const HomeScreen = () => {
             <ButtonText>Adote agora!</ButtonText>
           </AdoptButton>
         </Banner>
-
+        
         <CategorySection>
           <CategoryTitle>Categorias</CategoryTitle>
           <CategoryRow>
-            {/* O botão de Cadastrar só será visível se o tipo de usuário for "ong" */}
-            {userType === 'ong' && (
+            {userType.trim().toLowerCase() === 'ong' && (
               <CategoryButton onPress={() => navigation.navigate('CadastroAnimal')}>
                 <CategoryImage source={categoryImg} />
                 <CategoryText>Cadastrar</CategoryText>
@@ -80,24 +116,6 @@ const HomeScreen = () => {
             </CategoryButton>
           </CategoryRow>
         </CategorySection>
-
-        <RecommendationSection>
-          <CategoryTitle>Recomendado</CategoryTitle>
-          <RecommendationCard>
-            <RecommendationImage source={recommendationImg} />
-            <View>
-              <RecommendationTitle>Benefícios de passear!</RecommendationTitle>
-              <Text>Opiniões de especialistas.</Text>
-            </View>
-          </RecommendationCard>
-          <RecommendationCard>
-            <RecommendationImage source={recommendationImg} />
-            <View>
-              <RecommendationTitle>Entenda o comportamento!</RecommendationTitle>
-              <Text>Opiniões de especialistas.</Text>
-            </View>
-          </RecommendationCard>
-        </RecommendationSection>
       </ScrollView>
 
       <NavBar>
@@ -126,6 +144,49 @@ const HomeScreen = () => {
   );
 };
 
+
+// Novos componentes estilizados adicionados
+const HeaderContent = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const SearchContainer = styled.View`
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  background-color: #FFF;
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin: 0 15px;
+`;
+
+const SearchInput = styled.TextInput`
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+`;
+
+const ProfileButton = styled.TouchableOpacity`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  justify-content: center;
+  align-items: center;
+`;
+
+const WelcomeContainer = styled.View`
+  flex-direction: row;
+  align-items: center;
+  margin-top: 10px;
+  align-self: flex-start;
+  margin-left: 20px;
+`;
+
+// Estilos existentes permanecem iguais
 const Container = styled.View`
   flex: 1;
   background-color: #f8f1eb;
@@ -134,10 +195,7 @@ const Container = styled.View`
 const Header = styled.View`
   background-color: rgb(196, 28, 95);
   padding: 20px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 50px;
+  padding-top: 50px;
 `;
 
 const HeaderImage = styled.Image`
@@ -145,22 +203,17 @@ const HeaderImage = styled.Image`
   height: 40px;
 `;
 
-const ProfileContainer = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
 const ProfileImage = styled.Image`
-  width: 35px;
-  height: 35px;
-  border-radius: 10px;
-  margin-right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
 `;
 
 const UserText = styled.Text`
   color: white;
   font-weight: bold;
   margin-right: 10px;
+  font-size: 16px;
 `;
 
 const BellIcon = styled.Image`
@@ -283,5 +336,12 @@ const RecommendationTitle = styled.Text`
   color: #333;
   margin-bottom: 5px;
 `;
+
+// Estilos adicionais
+const styles = {
+  searchIcon: {
+    marginRight: 8,
+  },
+};
 
 export default HomeScreen;
