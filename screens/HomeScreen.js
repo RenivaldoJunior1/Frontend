@@ -1,347 +1,193 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions, TextInput } from 'react-native';
-import styled from 'styled-components/native';
-import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, TextInput, Image, TouchableOpacity, Text, SafeAreaView, StyleSheet, ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import styled from "styled-components/native";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import CarrosselDicas from '../components/CarrosselDicas';
+import CarrosselPets from '../components/CarrosselPets';
 
-import logoImg from '../assets/patinha +.png';
-import profileImg from '../assets/patinha +.png';
-import bellIcon from '../assets/patinha +.png';
-import categoryImg from '../assets/patinha +.png';
-import recommendationImg from '../assets/patinha +.png';
-import homeIcon from '../assets/Home.png';
-import adoptionIcon from '../assets/patinha.png';
-import alertIcon from '../assets/Flag.png';
-import messagesIcon from '../assets/Mail.png';
-import menuIcon from '../assets/patinha +.png';
+export const HeaderContainer = styled(LinearGradient).attrs({
+  colors: ["#E13E79", "#9C27B0"], // Gradiente só no header
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
+})`
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+`;
 
-const { width } = Dimensions.get('window');
-
-const HomeScreen = () => {
+const Header = () => {
   const navigation = useNavigation();
-  const [userType, setUserType] = useState('');
-  const [userData, setUserData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const loadUserData = async () => {
-    try {
-      const storedUserType = await AsyncStorage.getItem('userType');
-      const userJson = await AsyncStorage.getItem('currentUser');
-      
-      if (storedUserType) setUserType(storedUserType);
-      if (userJson) setUserData(JSON.parse(userJson));
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-    }
-  };
-
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const storedUserType = await AsyncStorage.getItem('tipoCadastro');
-        const userJson = await AsyncStorage.getItem('currentUser');
-
-        console.log('UserType carregado', storedUserType);
-  
-        if (storedUserType) {
-          const trimmedUserType = storedUserType.trim().toLowerCase();
-          setUserType(trimmedUserType); // Garantindo que esteja sempre em minúsculas e sem espaços
-        }
-  
-        if (userJson) setUserData(JSON.parse(userJson));
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    };
-  
-    loadUserData();
-  }, []);
 
   return (
-    <Container>
-      <Header>
-        <HeaderContent>
-          <HeaderImage source={logoImg} resizeMode="contain" />
-          
-          <SearchContainer>
-            <Ionicons name="search" size={18} color="#666" style={styles.searchIcon} />
-            <SearchInput
-              placeholder="Buscar pets..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#999"
-            />
-          </SearchContainer>
-          
-          <ProfileButton onPress={() => navigation.navigate('Perfil')}>
-            {userData?.photo ? (
-              <ProfileImage source={{ uri: userData.photo }} />
-            ) : (
-              <Ionicons name="person-circle" size={32} color="#FFF" />
-            )}
-          </ProfileButton>
-        </HeaderContent>
-        
-        <WelcomeContainer>
-          <UserText>Olá, {userData?.name || 'Usuário'} ({userType})!</UserText>
-          <BellIcon source={bellIcon} resizeMode="contain" />
-        </WelcomeContainer>
-      </Header>
+    <SafeAreaView style={styles.safeContainer}>
+      {/* HEADER */}
+      <HeaderContainer>
+        <Image source={require("../assets/PataHome.png")} style={styles.logo} />
+        <View style={styles.searchContainer}>
+          <FontAwesome name="search" size={20} color="#E13E79" />
+          <TextInput style={styles.searchInput} placeholder="Pesquisar" placeholderTextColor="#E13E79" />
+          <TouchableOpacity>
+            <Ionicons name="options-outline" size={20} color="#E13E79" />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+          <Image source={require("../assets/profile.png")} style={styles.profileImage} />
+        </TouchableOpacity>
+      </HeaderContainer>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <Banner>
-          <TextBanner>Encontre um amigo!</TextBanner>
-          <AdoptButton>
-            <ButtonText>Adote agora!</ButtonText>
-          </AdoptButton>
-        </Banner>
-        
-        <CategorySection>
-          <CategoryTitle>Categorias</CategoryTitle>
-          <CategoryRow>
-            {userType.trim().toLowerCase() === 'ong' && (
-              <CategoryButton onPress={() => navigation.navigate('CadastroAnimal')}>
-                <CategoryImage source={categoryImg} />
-                <CategoryText>Cadastrar</CategoryText>
-              </CategoryButton>
-            )}
-            <CategoryButton onPress={() => navigation.navigate('Adotar')}>
-              <CategoryImage source={categoryImg} />
-              <CategoryText>Adotar</CategoryText>
-            </CategoryButton>
-            <CategoryButton onPress={() => navigation.navigate('AnimalList')}>
-              <CategoryImage source={categoryImg} />
-              <CategoryText>Explorar</CategoryText>
-            </CategoryButton>
-          </CategoryRow>
-        </CategorySection>
+      {/* MAIN CONTENT */}
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* SEÇÃO */}
+        <Text style={styles.title}>O que você procura?</Text>
+        <View style={styles.box}>
+          <View style={styles.row}>
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("OngScreen")}>
+              <Image source={require("../assets/ong.png")} style={styles.iconImage} />
+              <Text style={styles.iconText}>ONGs</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Home")}>
+              <Image source={require("../assets/dicas.png")} style={styles.iconImage} />
+              <Text style={styles.iconText}>Dicas e Cuidados</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("ClinicaScreen")}>
+              <Image source={require("../assets/clinicas.png")} style={styles.iconImage} />
+              <Text style={styles.iconText}>Clínicas</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* SEÇÃO */}
+        <Text style={styles.title}>Dicas e Cuidados</Text>
+        <CarrosselDicas />
+        <Text style={styles.title}>Conheça Nossos Pets</Text>
+        <CarrosselPets />
       </ScrollView>
 
-      <NavBar>
-        <NavButton onPress={() => navigation.navigate('HomeScreen')}>
-          <NavIcon source={homeIcon} />
-          <NavText>Início</NavText>
-        </NavButton>
-        <NavButton onPress={() => navigation.navigate('Adotar')}>
-          <NavIcon source={adoptionIcon} />
-          <NavText>Adoção</NavText>
-        </NavButton>
-        <NavButton onPress={() => navigation.navigate('Alerta')}>
-          <NavIcon source={alertIcon} />
-          <NavText>Alerta</NavText>
-        </NavButton>
-        <NavButton onPress={() => navigation.navigate('Mensagens')}>
-          <NavIcon source={messagesIcon} />
-          <NavText>Mensagens</NavText>
-        </NavButton>
-        <NavButton onPress={() => navigation.navigate('Mais')}>
-          <NavIcon source={menuIcon} />
-          <NavText>Mais</NavText>
-        </NavButton>
-      </NavBar>
-    </Container>
+      {/* FOOTER */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
+          <Image source={require("../assets/Home.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Início</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Adocao")}>
+          <Image source={require("../assets/patinha +.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Adoção</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
+          <Image source={require("../assets/Flag.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Alerta!</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
+          <Image source={require("../assets/Mail.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Mensagens</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.footerItem}
+          onPress={() => navigation.navigate("Menu")}
+        >
+          <Image source={require("../assets/Menu.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Menu</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
+export default Header;
 
-// Novos componentes estilizados adicionados
-const HeaderContent = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-`;
-
-const SearchContainer = styled.View`
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-  background-color: #FFF;
-  border-radius: 20px;
-  padding: 8px 15px;
-  margin: 0 15px;
-`;
-
-const SearchInput = styled.TextInput`
-  flex: 1;
-  font-size: 14px;
-  color: #333;
-`;
-
-const ProfileButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.2);
-  justify-content: center;
-  align-items: center;
-`;
-
-const WelcomeContainer = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-top: 10px;
-  align-self: flex-start;
-  margin-left: 20px;
-`;
-
-// Estilos existentes permanecem iguais
-const Container = styled.View`
-  flex: 1;
-  background-color: #f8f1eb;
-`;
-
-const Header = styled.View`
-  background-color: rgb(196, 28, 95);
-  padding: 20px;
-  padding-top: 50px;
-`;
-
-const HeaderImage = styled.Image`
-  width: 40px;
-  height: 40px;
-`;
-
-const ProfileImage = styled.Image`
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-`;
-
-const UserText = styled.Text`
-  color: white;
-  font-weight: bold;
-  margin-right: 10px;
-  font-size: 16px;
-`;
-
-const BellIcon = styled.Image`
-  width: 25px;
-  height: 25px;
-`;
-
-const Banner = styled.View`
-  background-color: #1e40af;
-  padding: 20px;
-  align-items: center;
-  border-radius: 10px;
-  margin: 20px;
-  width: ${width - 40}px;
-  align-self: center;
-`;
-
-const TextBanner = styled.Text`
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-`;
-
-const AdoptButton = styled.TouchableOpacity`
-  background-color: #10b981;
-  padding: 10px 20px;
-  border-radius: 10px;
-  margin-top: 10px;
-`;
-
-const ButtonText = styled.Text`
-  color: white;
-  font-weight: bold;
-`;
-
-const NavBar = styled.View`
-  flex-direction: row;
-  justify-content: space-around;
-  background-color: #c2185b;
-  padding: 15px;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-`;
-
-const NavButton = styled.TouchableOpacity`
-  flex: 1;
-  align-items: center;
-`;
-
-const NavIcon = styled.Image`
-  width: 25px;
-  height: 25px;
-  margin-bottom: 5px;
-`;
-
-const NavText = styled.Text`
-  color: white;
-  font-weight: bold;
-`;
-
-const CategorySection = styled.View`
-  padding: 20px;
-`;
-
-const CategoryTitle = styled.Text`
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-`;
-
-const CategoryRow = styled.View`
-  flex-direction: row;
-  justify-content: space-around;
-  margin-top: 10px;
-`;
-
-const CategoryButton = styled.TouchableOpacity`
-  align-items: center;
-  flex: 1;
-  margin: 5px;
-`;
-
-const CategoryImage = styled.Image`
-  width: 50px;
-  height: 50px;
-`;
-
-const CategoryText = styled.Text`
-  margin-top: 5px;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
-`;
-
-const RecommendationSection = styled.View`
-  padding: 20px;
-`;
-
-const RecommendationCard = styled.View`
-  flex-direction: row;
-  background-color: white;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  align-items: center;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const RecommendationImage = styled.Image`
-  width: 80px;
-  height: 80px;
-  border-radius: 10px;
-  margin-right: 15px;
-`;
-
-const RecommendationTitle = styled.Text`
-  font-size: 12px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 5px;
-`;
-
-// Estilos adicionais
-const styles = {
-  searchIcon: {
-    marginRight: 8,
+const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#FFF7EE", 
   },
-};
+  logo: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: "white",
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 5,
+    fontSize: 16,
+    color: "#E13E79",
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    marginLeft: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#3C55D2",
+    marginTop: 20,
+    marginBottom: 10,
+    marginLeft: 22,
+  },
+  box: {
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  iconContainer: {
+    alignItems: "center",
+    width: 80,
+  },
+  iconImage: {
+    width: 50,
+    height: 50,
+    marginBottom: 5,
+  },
+  iconText: {
+    fontSize: 14,
+    color: "#4b0082",
+    textAlign: "center",
+  },
 
-export default HomeScreen;
+  // FOOTER STYLES
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 10,
+    backgroundColor: "#EC5475",
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    position: "absolute",
+    bottom: 10,
+    left: 0,
+    right: 0,
+  },
+  footerItem: {
+    alignItems: "center",
+  },
+  footerIcon: {
+    width: 30,
+    height: 24,
+    marginBottom: 2,
+  },
+  footerText: {
+    fontSize: 10,
+    color: "white",
+  },
+});

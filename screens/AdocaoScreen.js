@@ -1,15 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  FlatList,
-  Dimensions,
-  SafeAreaView,
-} from "react-native";
+import {View, Text, StyleSheet, TouchableOpacity, TextInput, Image, FlatList, Dimensions, SafeAreaView} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import HomeCardBackground from "../assets/HomeCardPet.png";
