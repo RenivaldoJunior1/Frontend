@@ -19,10 +19,21 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.myproject"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "fonts": [
+      {
+        "fontFamily": "ABeeZee",
+        "src": "./assets/fonts/ABeeZee-Regular.ttf"
+      },
+      {
+        "fontFamily": "Poppins",
+        "src": "./assets/fonts/Poppins-Regular.ttf"
+      }
+    ]
   }
 }
