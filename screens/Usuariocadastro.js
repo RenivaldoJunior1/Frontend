@@ -3,7 +3,6 @@ import {
   View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image, Alert, 
   ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -17,6 +16,48 @@ export default function CadastroUsuarioScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Função para formatar o CPF no padrão xxx.xxx.xxx-xx
+  const formatarCPF = (cpf) => {
+    const cpfSemFormatacao = cpf.replace(/\D/g, '');
+    
+    if (cpfSemFormatacao.length <= 3) {
+      return cpfSemFormatacao;
+    } else if (cpfSemFormatacao.length <= 6) {
+      return `${cpfSemFormatacao.slice(0, 3)}.${cpfSemFormatacao.slice(3)}`;
+    } else if (cpfSemFormatacao.length <= 9) {
+      return `${cpfSemFormatacao.slice(0, 3)}.${cpfSemFormatacao.slice(3, 6)}.${cpfSemFormatacao.slice(6)}`;
+    } else {
+      return `${cpfSemFormatacao.slice(0, 3)}.${cpfSemFormatacao.slice(3, 6)}.${cpfSemFormatacao.slice(6, 9)}-${cpfSemFormatacao.slice(9, 11)}`;
+    }
+  };
+
+  // Função para formatar o telefone no padrão (xx)xxxxx-xxxx
+  const formatarTelefone = (telefone) => {
+    const telefoneSemFormatacao = telefone.replace(/\D/g, '');
+    
+    if (telefoneSemFormatacao.length <= 2) {
+      return telefoneSemFormatacao;
+    } else if (telefoneSemFormatacao.length <= 7) {
+      return `(${telefoneSemFormatacao.slice(0, 2)})${telefoneSemFormatacao.slice(2)}`;
+    } else {
+      return `(${telefoneSemFormatacao.slice(0, 2)})${telefoneSemFormatacao.slice(2, 7)}-${telefoneSemFormatacao.slice(7, 11)}`;
+    }
+  };
+
+  const handleCPFChange = (text) => {
+    setCpf(formatarCPF(text));
+  };
+
+  const handleTelefoneChange = (text) => {
+    setTelefone(formatarTelefone(text));
+  };
+
+  const validarEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleCadastro = async () => {
     if (!cpf || !nome || !telefone || !cidade || !endereco || !email || !senha || !confirmarSenha) {
@@ -34,23 +75,62 @@ export default function CadastroUsuarioScreen() {
       Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
       return;
     }
+
+    // Validar formato do CPF (xxx.xxx.xxx-xx)
+    if (cpf.length !== 14) {
+      Alert.alert('Erro', 'O CPF deve estar no formato xxx.xxx.xxx-xx');
+      return;
+    }
+
+    // Validar formato do telefone ((xx)xxxxx-xxxx)
+    if (telefone.length !== 14) {
+      Alert.alert('Erro', 'O telefone deve estar no formato (xx)xxxxx-xxxx');
+      return;
+    }
+
+    // Validar formato do email
+    if (!validarEmail(email)) {
+      Alert.alert('Erro', 'Formato de e-mail inválido!');
+      return;
+    }
   
     try {
-      const novoUsuario = { cpf, nome, telefone, cidade, endereco, email, senha, tipoCadastro: 'usuario'};
+      setIsLoading(true);
       
-      let usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
-      usuarios.push(novoUsuario);
+      const userData = {
+        cpf: cpf,
+        responsavelNome: nome,
+        telefone: telefone, 
+        cidade: cidade,
+        endereco: endereco,
+        email: email,
+        password: senha
+      };
+      
+      const response = await fetch('https://pethopeapi.onrender.com/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
 
-      await AsyncStorage.setItem('usuarios', JSON.stringify(usuarios));
+      const data = await response.json();
 
-      console.log('Cadastro Salvo', novoUsuario);
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao cadastrar usuário');
+      }
 
+      console.log('Cadastro realizado com sucesso:', data);
       Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
       navigation.navigate('Login');
 
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
-      console.error("Erro ao salvar no AsyncStorage:", error);
+      const errorMessage = error.message || 'Não foi possível realizar o cadastro.';
+      Alert.alert('Erro', errorMessage);
+      console.error("Erro ao cadastrar usuário:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -81,36 +161,103 @@ export default function CadastroUsuarioScreen() {
                 <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
               </View>
               
-              {[{ label: 'CPF', value: cpf, setValue: setCpf, keyboardType: 'numeric', maxLength: 11 },
-                { label: 'Nome', value: nome, setValue: setNome },
-                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric', maxLength: 11 },
-                { label: 'Cidade', value: cidade, setValue: setCidade },
-                { label: 'Endereço', value: endereco, setValue: setEndereco },
-                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
-                { label: 'Senha', value: senha, setValue: setSenha, secureTextEntry: true, minLength: 6 },
-                { label: 'Confirmar Senha', value: confirmarSenha, setValue: setConfirmarSenha, secureTextEntry: true }].map((input, index) => (
-                  <View key={index} style={styles.inputContainer}>
-                    <Text style={styles.label}>{input.label}</Text>
-                    <TextInput 
-                      style={styles.input} 
-                      placeholder={input.label} 
-                      value={input.value} 
-                      onChangeText={input.setValue} 
-                      keyboardType={input.keyboardType || 'default'}
-                      secureTextEntry={input.secureTextEntry || false}
-                      maxLength={input.maxLength}  // Limita o número de caracteres
-                      onBlur={() => {
-                        // Garantir que a senha tem no mínimo 6 caracteres
-                        if (input.label === 'Senha' && senha.length < 6) {
-                          Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
-                        }
-                      }}
-                    />
-                  </View>
-              ))}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>CPF</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="000.000.000-00"
+                  value={cpf} 
+                  onChangeText={handleCPFChange}
+                  keyboardType="numeric"
+                  maxLength={14}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nome</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome completo"
+                  value={nome} 
+                  onChangeText={setNome}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Telefone</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="(00)00000-0000"
+                  value={telefone} 
+                  onChangeText={handleTelefoneChange}
+                  keyboardType="numeric"
+                  maxLength={14}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Cidade</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Sua cidade"
+                  value={cidade} 
+                  onChangeText={setCidade}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Endereço</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Rua, número, bairro"
+                  value={endereco} 
+                  onChangeText={setEndereco}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>E-mail</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="seu-email@exemplo.com"
+                  value={email} 
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Mínimo 6 caracteres"
+                  value={senha} 
+                  onChangeText={setSenha}
+                  secureTextEntry={true}
+                  minLength={6}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Confirmar Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Repita sua senha"
+                  value={confirmarSenha} 
+                  onChangeText={setConfirmarSenha}
+                  secureTextEntry={true}
+                />
+              </View>
   
-              <TouchableOpacity style={styles.button} onPress={handleCadastro}>
-                <Text style={styles.buttonText}>Cadastrar</Text>
+              <TouchableOpacity 
+                style={[styles.button, isLoading && styles.buttonDisabled]} 
+                onPress={handleCadastro}
+                disabled={isLoading}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? "Cadastrando..." : "Cadastrar"}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </LinearGradient>
@@ -118,7 +265,6 @@ export default function CadastroUsuarioScreen() {
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>  
   );
-  
 }
 
 const styles = StyleSheet.create({
@@ -214,6 +360,10 @@ const styles = StyleSheet.create({
     width: '60%',
     alignSelf: 'center',
     elevation: 5
+  },
+
+  buttonDisabled: {
+    backgroundColor: '#888888',
   },
 
   buttonText: { 
