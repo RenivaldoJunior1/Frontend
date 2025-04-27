@@ -10,63 +10,73 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   const handleLogin = async () => {
+    // Validação de campos vazios
     if (!email || !senha) {
       Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
     }
   
     try {
-      // Busca todos os tipos de usuários possíveis
-      const clinicaPerfil = JSON.parse(await AsyncStorage.getItem('clinicaPerfil')) || null;
-      const usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
-      const ongs = JSON.parse(await AsyncStorage.getItem('ongs')) || [];
+      setLoading(true);
 
-      // Verifica em todas as possíveis fontes de autenticação
-      let usuarioAutenticado = null;
-      let tipoCadastro = '';
+      const response = await fetch('https://pethopeapi.onrender.com/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: senha // Ajustado para o nome do campo esperado pela API
+        }),
+      });
 
-      // 1. Verifica no cadastro de clínica/ONG (que você está usando no CadastroClinica)
-      if (clinicaPerfil && clinicaPerfil.email === email && clinicaPerfil.senha === senha) {
-        usuarioAutenticado = clinicaPerfil;
-        tipoCadastro = clinicaPerfil.tipoCadastro || 'ONG';
-      }
-      // 2. Verifica na lista de usuários comuns
-      else {
-        const usuarioValido = usuarios.find(user => user.email === email && user.senha === senha);
-        if (usuarioValido) {
-          usuarioAutenticado = usuarioValido;
-          tipoCadastro = usuarioValido.tipoCadastro || 'default';
-        }
-        // 3. Verifica na lista de ONGs (se você usar essa chave no futuro)
-        else {
-          const ongValida = ongs.find(ong => ong.email === email && ong.senha === senha);
-          if (ongValida) {
-            usuarioAutenticado = ongValida;
-            tipoCadastro = 'ONG';
-          }
-        }
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Erro ao fazer login');
       }
 
-      if (usuarioAutenticado) {
-        // Salva as informações da sessão
-        await AsyncStorage.setItem('tipoCadastro', tipoCadastro);
-        await AsyncStorage.setItem('usuarioAtual', JSON.stringify(usuarioAutenticado));
+      // Login bem-sucedido
+      if (responseData.data && responseData.data.token) {
+        await AsyncStorage.setItem('userToken', responseData.data.token);
+       
+        const userInfoResponse = await fetch('https://pethopeapi.onrender.com/api/users/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${responseData.data.token}`,
+            'Content-Type': 'application/json',
+          },
+        });
         
-        Alert.alert('Sucesso', `Login realizado como ${tipoCadastro}!`);
-        navigation.navigate('Home', { tipoCadastro });
+        const userInfo = await userInfoResponse.json();
+        
+        if (userInfoResponse.ok && userInfo.data) {
+          await AsyncStorage.setItem('usuarioAtual', JSON.stringify(userInfo.data));
+
+          const tipoCadastro = userInfo.data.role || 'default';
+          await AsyncStorage.setItem('tipoCadastro', tipoCadastro);
+          
+          Alert.alert('Sucesso', 'Login realizado com sucesso!');
+          navigation.navigate('Home', { tipoCadastro });
+        } else {
+          Alert.alert('Sucesso', 'Login realizado!');
+          navigation.navigate('Home');
+        }
       } else {
-        Alert.alert('Erro', 'Email ou senha incorretos!');
+        Alert.alert('Erro', 'Token não encontrado na resposta.');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível fazer login.');
-      console.error("Erro ao acessar o AsyncStorage:", error);
+      Alert.alert('Erro', error.message || 'Não foi possível fazer login. Verifique suas credenciais.');
+      console.error("Erro no login:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // O restante do seu componente permanece igual...
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -96,6 +106,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   value={email}
                   onChangeText={setEmail}
+                  editable={!loading}
                 />
               </View>
               <View style={styles.inputContainer}>
@@ -106,10 +117,15 @@ export default function LoginScreen() {
                   secureTextEntry
                   value={senha}
                   onChangeText={setSenha}
+                  editable={!loading}
                 />
               </View>
-              <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                <Text style={styles.buttonText}>Login</Text>
+              <TouchableOpacity 
+                style={[styles.button, loading && styles.buttonDisabled]} 
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>{loading ? 'Carregando...' : 'Login'}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('EsqueceuSenha')}>
                 <Text style={styles.forgotPassword}>Esqueceu sua senha?</Text>
@@ -125,27 +141,22 @@ export default function LoginScreen() {
   );
 }
 
-// Seus estilos permanecem os mesmos...
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
     backgroundColor: '#FFF4EC',
     alignItems: 'center'
   },
-  // ... (mantenha o resto dos estilos igual)
-
   header: { 
     marginTop: 90,
     alignItems: 'center',
     marginBottom: 50
   },
-
   logo: { 
     width: 300,
     height: 150, 
     resizeMode: 'contain'
   },
-
   subtitle: { 
     fontSize: 20, 
     color: '#f45b74', 
@@ -153,7 +164,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginTop: -38,
   },
-
   gradient: { 
     flex: 1, 
     width: '100%', 
@@ -162,13 +172,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25, 
     borderTopRightRadius: 25
   },
-
   titleContainer:{
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'center'
   },
-
   title: { 
     fontSize: 35, 
     fontWeight: 'ABeeZee', 
@@ -176,13 +184,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     left: 15
   },
-
   inputContainer: { 
     width: '90%', 
     marginBottom: 15, 
     alignItems: 'flex-start'
   },
-
   label: { 
     fontSize: 16, 
     color: '#FFFFFF', 
@@ -190,7 +196,6 @@ const styles = StyleSheet.create({
     fontWeight: 'ABeeZee',
     marginLeft:15,
   },
-
   input: { 
     width: '100%', 
     backgroundColor: '#FFFFFF', 
@@ -199,7 +204,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
   },
-
   button: { 
     backgroundColor: '#B2BC29', 
     paddingVertical: 15, 
@@ -208,27 +212,27 @@ const styles = StyleSheet.create({
     marginTop: 20, 
     alignItems: 'center'
   },
-
+  buttonDisabled: {
+    backgroundColor: '#8a9022',
+    opacity: 0.7
+  },
   buttonText: { 
     color: '#ffffff', 
     fontSize: 18, 
     fontWeight: 'Poppins'
   },
-
   forgotPassword: { 
     marginTop: 15, 
     color: '#FFFFFF', 
     fontSize: 14, 
     textAlign: 'center'
   },
-
   registerText: { 
     marginTop: 10, 
     color: '#FFFFFF', 
     fontSize: 14, 
     textAlign: 'center'
   },
-
   pawIcon: {
     marginLeft: 1,
     width: 35,
@@ -237,7 +241,6 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     left:15
   },
-
   bold:{
     fontWeight: 'bold',
   }
