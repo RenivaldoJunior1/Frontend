@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image, Alert, 
-  ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Switch
+  ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -24,57 +23,158 @@ export default function CadastroClinicascreen() {
   const [facebook, setFacebook] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-
-  const handleCadastro = async () => {
-    if (!cnpj || cnpj.length !== 14 || !telefone || telefone.length !== 11 || !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha) {
-      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios corretamente!');
-      return;
+  // Função para formatar o CNPJ no padrão XX.XXX.XXX/XXXX-XX
+  const formatarCNPJ = (cnpj) => {
+    const cnpjSemFormatacao = cnpj.replace(/\D/g, '');
+    if (cnpjSemFormatacao.length <= 14) {
+      return cnpjSemFormatacao;
     }
+    return cnpjSemFormatacao.slice(0, 14);
+  };
 
-    if (senha !== confirmarSenha) {
-          Alert.alert('Erro', 'As senhas não coincidem!');
-          return;
-        }
-      
-        // Verificação de senha com no mínimo 6 caracteres
-        if (senha.length < 6) {
-          Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
-          return;
-        }
-
-    try {
-      const novaClinica = { 
-        cnpj, 
-        nome, 
-        telefone, 
-        cidade, 
-        endereco, 
-        razaoSocial, 
-        nomeFantasia, 
-        ofereceServico, 
-        tipoServico: ofereceServico ? tipoServico : '',
-        email, 
-        site, 
-        instagram, 
-        facebook,
-        senha,
-        tipoCadastro: 'ONG' 
-      };
-
-      console.log("Dados a serem Salvos", novaClinica);
-      await AsyncStorage.setItem('clinica', JSON.stringify(novaClinica));
-
-      const saveData = await AsyncStorage.getItem('clinica')
-      console.log("Dados Salvos", saveData);
-
-      Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
-      navigation.navigate('Login');
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
-      console.error("Erro ao salvar no AsyncStorage:", error);
+  // Função para formatar o telefone no padrão (xx)xxxxx-xxxx sem espaços
+  const formatarTelefone = (telefone) => {
+    const telefoneSemFormatacao = telefone.replace(/\D/g, '');
+    
+    if (telefoneSemFormatacao.length <= 2) {
+      return `(${telefoneSemFormatacao}`;
+    } else if (telefoneSemFormatacao.length <= 7) {
+      return `(${telefoneSemFormatacao.slice(0, 2)})${telefoneSemFormatacao.slice(2)}`;
+    } else {
+      return `(${telefoneSemFormatacao.slice(0, 2)})${telefoneSemFormatacao.slice(2, 7)}-${telefoneSemFormatacao.slice(7, 11)}`;
     }
   };
+
+  const handleCNPJChange = (text) => {
+    setCnpj(formatarCNPJ(text));
+  };
+
+  const handleTelefoneChange = (text) => {
+    setTelefone(formatarTelefone(text));
+  };
+
+  const validarEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validarURL = (url) => {
+    if (!url) return true; // URL é opcional
+    const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    return urlRegex.test(url);
+  };
+
+  const handleCadastro = async () => {
+    // Validação dos campos obrigatórios
+    if (!cnpj || !nome || !telefone || !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios!');
+      return;
+    }
+  
+    // Validação do CNPJ (apenas números e 14 dígitos)
+    if (cnpj.length !== 14) {
+      Alert.alert('Erro', 'O CNPJ deve ter 14 dígitos!');
+      return;
+    }
+  
+    // Validação do telefone (exatamente 14 caracteres incluindo formatação)
+    const telefoneFormatado = telefone.replace(/\s/g, ''); // Remove espaços
+    if (telefoneFormatado.length !== 14) {
+      Alert.alert('Erro', 'O telefone deve estar no formato (xx)xxxxx-xxxx');
+      return;
+    }
+  
+    // Validação das senhas
+    if (senha !== confirmarSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem!');
+      return;
+    }
+      
+    // Verificação de senha com no mínimo 6 caracteres
+    if (senha.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+      return;
+    }
+  
+    // Validação do email
+    if (!validarEmail(email)) {
+      Alert.alert('Erro', 'Formato de e-mail inválido!');
+      return;
+    }
+  
+    // Preparar URLs com protocolo HTTPS se não estiver presente
+    function prepararURL(url) {
+      if (!url) return undefined;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return `https://${url}`;
+      }
+      return url;
+    }
+  
+    try {
+      setIsLoading(true);
+  
+      const dadosONG = {
+        cnpj: cnpj, 
+        responsavelNome: nome,
+        telefone: telefoneFormatado,
+        cidade: cidade,
+        endereco: endereco,
+        razaoSocial: razaoSocial,
+        email: email,
+        senha: senha,
+        site: prepararURL(site),
+        urlFacebook: prepararURL(facebook),
+        urlInstagram: prepararURL(instagram),
+        isPrestadorServico: ofereceServico
+      };
+  
+      if (nomeFantasia && nomeFantasia.trim() !== '') {
+        dadosONG.nomeFantasia = nomeFantasia;
+      }
+  
+      // Remover o campo tipoServico, já que não parece estar na especificação
+      // Se quiser manter, descomente a linha abaixo
+      // if (ofereceServico && tipoServico && tipoServico.trim() !== '') {
+      //   dadosONG.tipoServico = tipoServico;
+      // }
+    
+      const response = await fetch('https://pethopeapi.onrender.com/api/users/ong', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(dadosONG),
+      });
+      
+      const responseText = await response.text();      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Erro ao parsear resposta JSON:", e);
+        data = { message: 'Erro ao processar resposta do servidor' };
+      }
+      
+      if (!response.ok) {
+        throw new Error(data.message || `Erro ${response.status}: ${responseText}`);
+      }
+  
+      console.log("Resposta da API:", data);
+      Alert.alert('Sucesso', 'Cadastro da ONG realizado com sucesso!');
+      navigation.navigate('Login');
+    } catch (error) {
+      const errorMessage = error.message || 'Não foi possível realizar o cadastro.';
+      Alert.alert('Erro', errorMessage);
+      console.error("Erro ao cadastrar ONG:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -95,72 +195,184 @@ export default function CadastroClinicascreen() {
                 <Text style={styles.title}>Cadastro de ONG</Text>
                 <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
               </View>
-              {[{ label: 'CNPJ', value: cnpj, setValue: setCnpj, keyboardType: 'numeric' },
-                { label: 'Nome do Responsável', value: nome, setValue: setNome },
-                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric' },
-                { label: 'Cidade', value: cidade, setValue: setCidade },
-                { label: 'Endereço', value: endereco, setValue: setEndereco },
-                { label: 'Razão Social', value: razaoSocial, setValue: setRazaoSocial },
-                { label: 'Nome Fantasia', value: nomeFantasia, setValue: setNomeFantasia },
-                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
-                { label: 'Site', value: site, setValue: setSite },
-                { label: 'Instagram', value: instagram, setValue: setInstagram },
-                { label: 'Facebook', value: facebook, setValue: setFacebook },
-                { label: 'Senha', value: senha, setValue: setSenha, secureTextEntry: true, minLength: 6 },
-                { label: 'Confirmar Senha', value: confirmarSenha, setValue: setConfirmarSenha, secureTextEntry: true }].map((input, index) => (
-                  <View key={index} style={styles.inputContainer}>
-                    <Text style={styles.label}>{input.label}</Text>
-                    <TextInput 
-                      style={styles.input} 
-                      placeholder={input.label} 
-                      value={input.value} 
-                      onChangeText={input.setValue} 
-                      keyboardType={input.keyboardType || 'default'}
-                      secureTextEntry={input.secureTextEntry || false}
-                      maxLength={input.maxLength}  // Limita o número de caracteres
-                      onBlur={() => {
-                      // Garantir que a senha tem no mínimo 6 caracteres
-                      if (input.label === 'Senha' && senha.length < 6) {
-                        Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
-                      }
-                    }
-                  } 
-                    />
-                  </View>
-              ))}
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Oferece Serviço?</Text>
-                  <View style={styles.checkboxRow}>
-                    <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(true)}>
-                      <View style={[styles.checkboxBox, ofereceServico === true && styles.checkboxSelected]} />
-                      <Text style={styles.checkboxLabel}>Sim</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(false)}>
-                      <View style={[styles.checkboxBox, ofereceServico === false && styles.checkboxSelected]} />
-                      <Text style={styles.checkboxLabel}>Não</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                </View>
-
-{ofereceServico === true && (
-  <View style={styles.inputContainer}>
-    <Text style={styles.label}>Qual serviço?</Text>
-    <TextInput 
-      style={styles.input} 
-      placeholder='Digite o serviço oferecido' 
-      value={tipoServico} 
-      onChangeText={setTipoServico}
-    />
-  </View>
-)}
-
               
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>CNPJ</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Apenas números" 
+                  value={cnpj} 
+                  onChangeText={handleCNPJChange} 
+                  keyboardType="numeric"
+                  maxLength={14}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nome do Responsável</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome completo" 
+                  value={nome} 
+                  onChangeText={setNome} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Telefone</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="(xx)xxxxx-xxxx" 
+                  value={telefone} 
+                  onChangeText={handleTelefoneChange} 
+                  keyboardType="numeric"
+                  maxLength={14}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Cidade</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Sua cidade" 
+                  value={cidade} 
+                  onChangeText={setCidade} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Endereço</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Rua, número, bairro" 
+                  value={endereco} 
+                  onChangeText={setEndereco} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Razão Social</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome oficial da ONG" 
+                  value={razaoSocial} 
+                  onChangeText={setRazaoSocial} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nome Fantasia</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome comercial (opcional)" 
+                  value={nomeFantasia} 
+                  onChangeText={setNomeFantasia} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>E-mail</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="seu-email@exemplo.com" 
+                  value={email} 
+                  onChangeText={setEmail} 
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Site</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="https://www.seusite.com (opcional)" 
+                  value={site} 
+                  onChangeText={setSite}
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Instagram</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="https://www.instagram.com/perfil (opcional)" 
+                  value={instagram} 
+                  onChangeText={setInstagram}
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Facebook</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="https://www.facebook.com/perfil (opcional)" 
+                  value={facebook} 
+                  onChangeText={setFacebook}
+                  autoCapitalize="none"
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Mínimo 6 caracteres" 
+                  value={senha} 
+                  onChangeText={setSenha} 
+                  secureTextEntry={true}
+                  minLength={6}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Confirmar Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Repita sua senha" 
+                  value={confirmarSenha} 
+                  onChangeText={setConfirmarSenha} 
+                  secureTextEntry={true}
+                />
+              </View>
 
-              <TouchableOpacity style={styles.button} onPress={handleCadastro}>
-                <Text style={styles.buttonText}>Cadastrar</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Oferece Serviço?</Text>
+                <View style={styles.checkboxRow}>
+                  <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(true)}>
+                    <View style={[styles.checkboxBox, ofereceServico === true && styles.checkboxSelected]} />
+                    <Text style={styles.checkboxLabel}>Sim</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.checkboxItem} onPress={() => setOfereceServico(false)}>
+                    <View style={[styles.checkboxBox, ofereceServico === false && styles.checkboxSelected]} />
+                    <Text style={styles.checkboxLabel}>Não</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {ofereceServico === true && (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Qual serviço?</Text>
+                  <TextInput 
+                    style={styles.input} 
+                    placeholder='Digite o serviço oferecido' 
+                    value={tipoServico} 
+                    onChangeText={setTipoServico}
+                  />
+                </View>
+              )}
+
+              <TouchableOpacity 
+                style={[styles.button, isLoading && styles.buttonDisabled]} 
+                onPress={handleCadastro}
+                disabled={isLoading}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? "Cadastrando..." : "Cadastrar"}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </LinearGradient>
@@ -256,7 +468,12 @@ const styles = StyleSheet.create({
     marginTop: 20, 
     alignItems: 'center',
     width: '60%',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    elevation: 5
+  },
+
+  buttonDisabled: {
+    backgroundColor: '#888888',
   },
 
   buttonText: { 
@@ -309,5 +526,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
   }
-  
 });
