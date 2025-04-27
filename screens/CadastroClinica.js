@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, Image, Alert, 
-  ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, Switch
+  ScrollView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -17,74 +16,128 @@ export default function CadastroClinicascreen() {
   const [razaoSocial, setRazaoSocial] = useState('');
   const [nomeFantasia, setNomeFantasia] = useState('');
   const [ofereceServico, setOfereceServico] = useState(false);
-  const [tipoServico, setTipoServico] = useState('');
   const [email, setEmail] = useState('');
   const [site, setSite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [facebook, setFacebook] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Função para formatar o CNPJ com pontuação
+  const formatCNPJ = (value) => {
+    // Remove qualquer caractere não-numérico
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Limita a 14 dígitos
+    const limitedValue = numericValue.slice(0, 14);
+    
+    // Aplica a formatação do CNPJ: XX.XXX.XXX/XXXX-XX
+    if (limitedValue.length <= 2) {
+      return limitedValue;
+    } else if (limitedValue.length <= 5) {
+      return `${limitedValue.slice(0, 2)}.${limitedValue.slice(2)}`;
+    } else if (limitedValue.length <= 8) {
+      return `${limitedValue.slice(0, 2)}.${limitedValue.slice(2, 5)}.${limitedValue.slice(5)}`;
+    } else if (limitedValue.length <= 12) {
+      return `${limitedValue.slice(0, 2)}.${limitedValue.slice(2, 5)}.${limitedValue.slice(5, 8)}/${limitedValue.slice(8)}`;
+    } else {
+      return `${limitedValue.slice(0, 2)}.${limitedValue.slice(2, 5)}.${limitedValue.slice(5, 8)}/${limitedValue.slice(8, 12)}-${limitedValue.slice(12)}`;
+    }
+  };
+
+  // Função para formatar o telefone (XX)XXXXX-XXXX
+  const formatTelefone = (value) => {
+    // Remove qualquer caractere não-numérico
+    const numericValue = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos
+    const limitedValue = numericValue.slice(0, 11);
+    
+    // Aplica a formatação
+    if (limitedValue.length <= 2) {
+      return `(${limitedValue}`;
+    } else if (limitedValue.length <= 7) {
+      return `(${limitedValue.slice(0, 2)})${limitedValue.slice(2)}`;
+    } else {
+      return `(${limitedValue.slice(0, 2)})${limitedValue.slice(2, 7)}-${limitedValue.slice(7)}`;
+    }
+  };
 
   const handleCadastro = async () => {
-  if (!cnpj || cnpj.length !== 14 || !telefone || telefone.length !== 11 || !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha) {
-    Alert.alert('Atenção', 'Preencha todos os campos obrigatórios corretamente!');
-    return;
-  }
+    // Remove formatação do CNPJ e telefone para validação
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    const telefoneLimpo = telefone.replace(/\D/g, '');
 
-  if (senha !== confirmarSenha) {
-    Alert.alert('Erro', 'As senhas não coincidem!');
-    return;
-  }
-  
-  if (senha.length < 6) {
-    Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
-    return;
-  }
-
-  try {
-    const novaClinica = { 
-      cnpj, 
-      nome, 
-      telefone, 
-      cidade, 
-      endereco, 
-      razaoSocial, 
-      nomeFantasia, 
-      ofereceServico, 
-      tipoServico: ofereceServico ? tipoServico : '',
-      email, 
-      site, 
-      instagram, 
-      facebook,
-      senha,
-      tipoCadastro: 'clinica' 
-    };
-
-    // Corrigido: Busca o array existente ou cria um novo
-    const clinicasSalvas = JSON.parse(await AsyncStorage.getItem('clinicas')) || [];
-    
-    // Verifica se o email já está cadastrado
-    const clinicaExistente = clinicasSalvas.find(c => c.email === email);
-    if (clinicaExistente) {
-      Alert.alert('Erro', 'Este email já está cadastrado!');
+    if (!cnpjLimpo || cnpjLimpo.length !== 14 || !telefoneLimpo || telefoneLimpo.length < 10 || 
+        !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha || !nome) {
+      Alert.alert('Atenção', 'Preencha todos os campos obrigatórios corretamente!');
       return;
     }
 
-    // Adiciona a nova clínica ao array
-    clinicasSalvas.push(novaClinica);
+    if (senha !== confirmarSenha) {
+      Alert.alert('Erro', 'As senhas não coincidem!');
+      return;
+    }
     
-    // Salva o array atualizado
-    await AsyncStorage.setItem('clinicas', JSON.stringify(clinicasSalvas));
+    if (senha.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
+      return;
+    }
 
-    console.log("Dados salvos:", novaClinica);
-    Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
-    navigation.navigate('Login');
-  } catch (error) {
-    Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
-    console.error("Erro ao salvar no AsyncStorage:", error);
-  }
-};
+    try {
+      setIsLoading(true);
+
+      // Prepara o objeto para enviar ao backend conforme a especificação da API
+      const dadosClinica = {
+        cnpj: cnpjLimpo,
+        responsavelNome: nome,
+        telefone: telefoneLimpo.length === 11 ? 
+          `(${telefoneLimpo.slice(0, 2)})${telefoneLimpo.slice(2, 7)}-${telefoneLimpo.slice(7)}` : 
+          `(${telefoneLimpo.slice(0, 2)})${telefoneLimpo.slice(2)}`,
+        cidade,
+        endereco,
+        razaoSocial,
+        nomeFantasia,
+        email,
+        senha,
+        site,
+        urlInstagram: instagram,
+        urlFacebook: facebook,
+        isPrestadorServico: ofereceServico
+      };
+
+      console.log(dadosClinica)
+
+      // Faz a requisição POST para a API
+      const resposta = await fetch('https://pethopeapi.onrender.com/api/users/clinica', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dadosClinica),
+      });
+
+      console.log("=======================================================================")
+      // Processa a resposta
+      const dadosResposta = await resposta.json();
+      console.log(dadosResposta)
+      if (!resposta.ok) {
+        // Se a resposta não for bem-sucedida (status diferente de 2xx)
+        throw new Error(dadosResposta.message || 'Erro ao cadastrar clínica');
+      }
+
+      console.log("Cadastro realizado com sucesso:", dadosResposta);
+      Alert.alert('Sucesso', 'Cadastro realizado com sucesso!');
+      navigation.navigate('Login');
+    } catch (erro) {
+      const mensagemErro = erro.message || 'Não foi possível realizar o cadastro.';
+      Alert.alert('Erro', mensagemErro);
+      console.error("Erro ao cadastrar clínica:", erro);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -102,42 +155,144 @@ export default function CadastroClinicascreen() {
           <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.card}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <View style={styles.titleContainer}>
-                <Text style={styles.title}>Cadastro de Clinica</Text>
+                <Text style={styles.title}>Cadastro de Clínica</Text>
                 <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
               </View>
-              {[{ label: 'CNPJ', value: cnpj, setValue: setCnpj, keyboardType: 'numeric' },
-                { label: 'Nome do Responsável', value: nome, setValue: setNome },
-                { label: 'Telefone', value: telefone, setValue: setTelefone, keyboardType: 'numeric' },
-                { label: 'Cidade', value: cidade, setValue: setCidade },
-                { label: 'Endereço', value: endereco, setValue: setEndereco },
-                { label: 'Razão Social', value: razaoSocial, setValue: setRazaoSocial },
-                { label: 'Nome Fantasia', value: nomeFantasia, setValue: setNomeFantasia },
-                { label: 'E-mail', value: email, setValue: setEmail, keyboardType: 'email-address' },
-                { label: 'Site', value: site, setValue: setSite },
-                { label: 'Instagram', value: instagram, setValue: setInstagram },
-                { label: 'Facebook', value: facebook, setValue: setFacebook },
-                { label: 'Senha', value: senha, setValue: setSenha, secureTextEntry: true, minLength: 6 },
-                { label: 'Confirmar Senha', value: confirmarSenha, setValue: setConfirmarSenha, secureTextEntry: true }].map((input, index) => (
-                  <View key={index} style={styles.inputContainer}>
-                    <Text style={styles.label}>{input.label}</Text>
-                    <TextInput 
-                      style={styles.input} 
-                      placeholder={input.label} 
-                      value={input.value} 
-                      onChangeText={input.setValue} 
-                      keyboardType={input.keyboardType || 'default'}
-                      secureTextEntry={input.secureTextEntry || false}
-                      maxLength={input.maxLength}  // Limita o número de caracteres
-                      onBlur={() => {
-                      // Garantir que a senha tem no mínimo 6 caracteres
-                      if (input.label === 'Senha' && senha.length < 6) {
-                        Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
-                      }
-                    }
-                  } 
-                    />
-                  </View>
-              ))}
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>CNPJ</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="XX.XXX.XXX/XXXX-XX" 
+                  value={cnpj} 
+                  onChangeText={(text) => setCnpj(formatCNPJ(text))} 
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nome do Responsável</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome do Responsável" 
+                  value={nome} 
+                  onChangeText={setNome} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Telefone</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="(XX)XXXXX-XXXX" 
+                  value={telefone} 
+                  onChangeText={(text) => setTelefone(formatTelefone(text))} 
+                  keyboardType="numeric" 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Cidade</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Cidade" 
+                  value={cidade} 
+                  onChangeText={setCidade} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Endereço</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Endereço" 
+                  value={endereco} 
+                  onChangeText={setEndereco} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Razão Social</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Razão Social" 
+                  value={razaoSocial} 
+                  onChangeText={setRazaoSocial} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nome Fantasia</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Nome Fantasia" 
+                  value={nomeFantasia} 
+                  onChangeText={setNomeFantasia} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>E-mail</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="E-mail" 
+                  value={email} 
+                  onChangeText={setEmail} 
+                  keyboardType="email-address" 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Site</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Site" 
+                  value={site} 
+                  onChangeText={setSite} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Instagram</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Instagram" 
+                  value={instagram} 
+                  onChangeText={setInstagram} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Facebook</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Facebook" 
+                  value={facebook} 
+                  onChangeText={setFacebook} 
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Senha" 
+                  value={senha} 
+                  onChangeText={setSenha} 
+                  secureTextEntry={true} 
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Confirmar Senha</Text>
+                <TextInput 
+                  style={styles.input} 
+                  placeholder="Confirmar Senha" 
+                  value={confirmarSenha} 
+                  onChangeText={setConfirmarSenha} 
+                  secureTextEntry={true} 
+                />
+              </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Oferece serviço?</Text>
@@ -160,9 +315,14 @@ export default function CadastroClinicascreen() {
                 </View>
               </View>
 
-
-              <TouchableOpacity style={styles.button} onPress={handleCadastro}>
-                <Text style={styles.buttonText}>Cadastrar</Text>
+              <TouchableOpacity 
+                style={[styles.button, isLoading && styles.buttonDisabled]} 
+                onPress={handleCadastro}
+                disabled={isLoading}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </LinearGradient>
