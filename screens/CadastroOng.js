@@ -16,7 +16,6 @@ export default function CadastroClinicascreen() {
   const [razaoSocial, setRazaoSocial] = useState('');
   const [nomeFantasia, setNomeFantasia] = useState('');
   const [ofereceServico, setOfereceServico] = useState(false);
-  const [tipoServico, setTipoServico] = useState('');
   const [email, setEmail] = useState('');
   const [site, setSite] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -58,12 +57,6 @@ export default function CadastroClinicascreen() {
   const validarEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const validarURL = (url) => {
-    if (!url) return true; // URL é opcional
-    const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-    return urlRegex.test(url);
   };
 
   const handleCadastro = async () => {
@@ -351,19 +344,7 @@ export default function CadastroClinicascreen() {
                     <Text style={styles.checkboxLabel}>Não</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-
-              {ofereceServico === true && (
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Qual serviço?</Text>
-                  <TextInput 
-                    style={styles.input} 
-                    placeholder='Digite o serviço oferecido' 
-                    value={tipoServico} 
-                    onChangeText={setTipoServico}
-                  />
-                </View>
-              )}
+              </View> 
 
               <TouchableOpacity 
                 style={[styles.button, isLoading && styles.buttonDisabled]} 
