@@ -21,13 +21,15 @@ import InfoClinica from '../screens/InfoClinica';
 import AdocaoScreen from '../screens/AdocaoScreen';
 import OngsScreen from '../screens/OngsScreen';
 import ClinicaScreen from '../screens/ClinicaScreen';
+import DicasScreen from '../screens/DicasScreen';
+import CuidadosScreen from '../screens/CuidadosScreen';
 
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login"component={LoginScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AnimalList" component={AnimalListScreen} />
@@ -48,7 +50,8 @@ export default function AppNavigator() {
         <Stack.Screen name="Adocao" component={AdocaoScreen}/>
         <Stack.Screen name="OngScreen" component={OngsScreen}/>
         <Stack.Screen name="ClinicaScreen" component={ClinicaScreen}/>
-      
+        <Stack.Screen name="DicasScreen" component={DicasScreen}/>
+        <Stack.Screen name='CuidadosScreen' component={CuidadosScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -50,12 +50,12 @@ const Header = () => {
               <Text style={styles.iconText}>ONGs</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Home")}>
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("CuidadosScreen")}>
               <Image source={require("../assets/CUIDADOS_home.png")} style={styles.iconImage} />
               <Text style={styles.iconText}>Cuidados</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Home")}>
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("DicasScreen")}>
               <Image source={require("../assets/Dicas_home.png")} style={styles.iconImage} />
               <Text style={styles.iconText}>Dicas</Text> 
             </TouchableOpacity>
