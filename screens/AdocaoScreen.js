@@ -1,22 +1,18 @@
 import React, { useState } from "react";
-import {View, Text, StyleSheet, TouchableOpacity, TextInput, Image, FlatList, Dimensions, SafeAreaView} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, FlatList, Dimensions, SafeAreaView, ImageBackground } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import HomeCardBackground from "../assets/HomeCardPet.png";
-import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
 
-
+// 🖼️ Imagens e ícones
+import HomeCardBackground from "../assets/HomeCardPet.png";
 import IconHome from "../assets/Home.png";
 import IconAdocao from "../assets/patinha +.png";
 import IconAlerta from "../assets/Flag.png";
 import IconMensagens from "../assets/Mail.png";
 import LogoNav from "../assets/LogoNav.png";
 import IconMenu from "../assets/Menu.png";
-
-// 🐶 Importando as imagens dos pets
 import Pipoca from "../assets/pet1.webp";
 import Max from "../assets/cachorro.jpeg";
 import Luna from "../assets/pet1.webp";
@@ -40,12 +36,7 @@ const AdocaoScreen = () => {
     "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
   });
 
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
-
   const navigation = useNavigation();
-
   const [searchText, setSearchText] = useState("");
   const [filteredPets, setFilteredPets] = useState(petsData);
 
@@ -76,67 +67,75 @@ const AdocaoScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={["#EC5475", "#9C127C"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.headerBar}
-      >
-        <Image source={LogoNav} style={styles.logoNav} />
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color="#EC5475" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Pesquisar"
-            placeholderTextColor="#EC5475"
-            value={searchText}
-            onChangeText={handleSearch}
-          />
+      {!fontsLoaded ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Carregando fontes...</Text>
         </View>
+      ) : (
+        <>
+          <LinearGradient
+            colors={["#EC5475", "#9C127C"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.headerBar}
+          >
+            <Image source={LogoNav} style={styles.logoNav} />
+            <View style={styles.searchContainer}>
+              <MaterialIcons name="search" size={20} color="#EC5475" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Pesquisar"
+                placeholderTextColor="#EC5475"
+                value={searchText}
+                onChangeText={handleSearch}
+              />
+            </View>
 
-        <Image
-          source={{ uri: "https://i.pravatar.cc/100" }}
-          style={styles.userImage}
-        />
-      </LinearGradient>
+            <Image
+              source={{ uri: "https://i.pravatar.cc/100" }}
+              style={styles.userImage}
+            />
+          </LinearGradient>
 
-      <FlatList
-        data={filteredPets}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContainer}
-      />
+          <FlatList
+            data={filteredPets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.listContainer}
+          />
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerItem}
-          onPress={() => navigation.navigate("Home")}
-        >
-          <Image source={IconHome} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Início</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconAdocao} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Adoção</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconAlerta} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconMensagens} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.bottomItem}
-          onPress={() => navigation.navigate("Menu")}
-        >
-          <Image source={IconMenu} style={styles.bottomIcon} />
-          <Text style={styles.bottomLabel}>Menu</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.footer}>
+            <TouchableOpacity
+              style={styles.footerItem}
+              onPress={() => navigation.navigate("Home")}
+            >
+              <Image source={IconHome} style={styles.footerIcon} />
+              <Text style={styles.footerText}>Início</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.footerItem}>
+              <Image source={IconAdocao} style={styles.footerIcon} />
+              <Text style={styles.footerText}>Adoção</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.footerItem}>
+              <Image source={IconAlerta} style={styles.footerIcon} />
+              <Text style={styles.footerText}>Alerta!</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.footerItem}>
+              <Image source={IconMensagens} style={styles.footerIcon} />
+              <Text style={styles.footerText}>Mensagens</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bottomItem}
+              onPress={() => navigation.navigate("Menu")}
+            >
+              <Image source={IconMenu} style={styles.bottomIcon} />
+              <Text style={styles.bottomLabel}>Menu</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 };
@@ -146,6 +145,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF4EC",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFF4EC",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#EC5475",
+    fontFamily: "Poppins-Regular",
+  },
+  // ... seus outros estilos
   headerBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -176,10 +187,17 @@ const styles = StyleSheet.create({
     color: "#EC5475",
   },
   userImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginLeft: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  logoNav: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    resizeMode: "contain",
   },
   listContainer: {
     paddingHorizontal: 10,
@@ -205,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: "contain",
     width: "113%",
-    height: "120%", // isso vai garantir que as patinhas apareçam sem cortar
+    height: "120%",
   },
   cardImage: {
     width: "85%",
@@ -215,13 +233,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontFamily: "Chewy-Regular", // Certifique-se de que essa fonte foi carregada
+    fontFamily: "Chewy-Regular",
     color: "#3C55D2",
     marginTop: 6,
   },
   cardSubtitle: {
     fontSize: 12,
-    fontFamily: "Poppins-Regular", // Certifique-se de que essa fonte foi carregada
+    fontFamily: "Poppins-Regular",
     color: "#3C55D2",
     marginBottom: 8,
   },
@@ -229,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#fff",
     marginTop: 4,
-    fontFamily: "Poppins",
+    fontFamily: "Poppins-Regular",
   },
   footer: {
     flexDirection: "row",
@@ -247,22 +265,14 @@ const styles = StyleSheet.create({
     height: 24,
     marginBottom: 2,
   },
-  userImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  logoNav: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
-    resizeMode: "contain",
-  },
   footerText: {
     fontSize: 10,
     color: "white",
+    fontFamily: "Poppins-Regular",
+  },
+  bottomIcon: {
+    width: 30,
+    height: 24,
   },
 });
 

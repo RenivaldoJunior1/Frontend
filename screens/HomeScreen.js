@@ -51,8 +51,13 @@ const Header = () => {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Home")}>
-              <Image source={require("../assets/dicas.png")} style={styles.iconImage} />
-              <Text style={styles.iconText}>Dicas e Cuidados</Text>
+              <Image source={require("../assets/CUIDADOS_home.png")} style={styles.iconImage} />
+              <Text style={styles.iconText}>Cuidados</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Home")}>
+              <Image source={require("../assets/Dicas_home.png")} style={styles.iconImage} />
+              <Text style={styles.iconText}>Dicas</Text> 
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("ClinicaScreen")}>
@@ -63,10 +68,10 @@ const Header = () => {
         </View>
 
         {/* SEÇÃO */}
-        <Text style={styles.title}>Dicas e Cuidados</Text>
-        <CarrosselDicas />
         <Text style={styles.title}>Conheça Nossos Pets</Text>
         <CarrosselPets />
+        <Text style={styles.title}>Dicas e Cuidados</Text>
+        <CarrosselDicas />
       </ScrollView>
 
       {/* FOOTER */}
@@ -80,12 +85,8 @@ const Header = () => {
           <Text style={styles.footerText}>Adoção</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Flag.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Mail.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
+          <Image source={require("../assets/NavNotificação.png")} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Notificações!</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.footerItem}
@@ -183,8 +184,12 @@ const styles = StyleSheet.create({
   },
   footerIcon: {
     width: 30,
-    height: 24,
-    marginBottom: 2,
+    height: 30,
+    marginBottom: 4,
+    resizeMode: "contain", // Isso evita corte
+    marginTop: 4, // Adiciona espaço extra para o topo
+    marginLeft: 4,
+    marginRight: 4,
   },
   footerText: {
     fontSize: 10,
