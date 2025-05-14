@@ -12,7 +12,7 @@ export default function NovaSenhaScreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const navigation = useNavigation();
 
-  const handleConfirmar = () => {
+  const handleConfirmar = async () => {
     if (!novaSenha || !confirmarSenha) {
       Alert.alert('Atenção', 'Por favor, preencha todos os campos');
       return;
@@ -22,7 +22,29 @@ export default function NovaSenhaScreen() {
       Alert.alert('Atenção', 'As senhas não coincidem');
       return;
     }
-    
+
+    try {
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: novaSenha })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Senha alterada com sucesso!');
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Erro', data.mensagem || 'Não foi possível atualizar a senha.');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar a senha:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao atualizar a senha. Tente novamente.');
+    }
+
     // Validar requisitos da senha
     if (novaSenha.length < 8 || novaSenha.length > 12) {
       Alert.alert('Atenção', 'A senha deve ter entre 8 e 12 caracteres');

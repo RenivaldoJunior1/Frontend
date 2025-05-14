@@ -10,14 +10,32 @@ export default function EsqueceuSenhaScreen() {
   const [email, setEmail] = useState('');
   const navigation = useNavigation();
 
-  const handleContinuar = () => {
+  const handleContinuar = async () => {
     if (!email) {
       alert('Por favor, insira seu e-mail');
       return;
     }
-    navigation.navigate('CodigoValidacao');
+  
+    try {
+      const response = await fetch('https://pethopeapi.onrender.com/api/users', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok && data.data.some(user => user.email === email)) {
+        navigation.navigate('CodigoValidacao');
+      } else {
+        alert('E-mail não encontrado. Por favor, verifique e tente novamente.');
+      }
+    } catch (error) {
+      console.error('Erro ao validar e-mail:', error);
+      alert('Ocorreu um erro ao verificar o e-mail. Tente novamente mais tarde.');
+    }
   };
-
   const handleVoltar = () => {
     navigation.goBack();
   };
