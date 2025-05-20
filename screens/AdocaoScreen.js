@@ -1,23 +1,36 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, FlatList, Dimensions, SafeAreaView, ImageBackground } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  FlatList,
+  Dimensions,
+  SafeAreaView,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import HomeCardBackground from "../assets/HomeCardPet.png";
+import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 
-// 🖼️ Imagens e ícones
-import HomeCardBackground from "../assets/HomeCardPet.png";
+import PataIcon from "../assets/patinha.png";
 import IconHome from "../assets/Home.png";
 import IconAdocao from "../assets/patinha +.png";
 import IconAlerta from "../assets/Flag.png";
 import IconMensagens from "../assets/Mail.png";
 import LogoNav from "../assets/LogoNav.png";
 import IconMenu from "../assets/Menu.png";
-import Pipoca from "../assets/pet1.webp";
-import Max from "../assets/cachorro.jpeg";
-import Luna from "../assets/pet1.webp";
-import Thor from "../assets/cachorro.jpeg";
-import Nina from "../assets/cachorro.jpeg";
+
+import Pipoca from "../assets/CardPet.png";
+import Max from "../assets/CardPet.png";
+import Luna from "../assets/CardPet.png";
+import Thor from "../assets/CardPet.png";
+import Nina from "../assets/CardPet.png";
+import FooterNav from "../components/FooterNav";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 40 - 15) / 2;
@@ -37,6 +50,7 @@ const AdocaoScreen = () => {
   });
 
   const navigation = useNavigation();
+
   const [searchText, setSearchText] = useState("");
   const [filteredPets, setFilteredPets] = useState(petsData);
 
@@ -54,88 +68,123 @@ const AdocaoScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <ImageBackground
-      source={HomeCardBackground}
-      style={styles.card}
-      imageStyle={styles.cardBackgroundImage}
+    <TouchableOpacity
+      onPress={() => navigation.navigate("AnimalDetail", { pet: item })}
+      activeOpacity={0.9}
     >
-      <Image source={item.imagem} style={styles.cardImage} />
-      <Text style={styles.cardTitle}>{item.nome}</Text>
-      <Text style={styles.cardSubtitle}>{item.raca}</Text>
-    </ImageBackground>
+      <ImageBackground
+        source={HomeCardBackground}
+        style={styles.card}
+        imageStyle={styles.cardBackgroundImage}
+      >
+        <Image source={item.imagem} style={styles.cardImage} />
+        <Text style={styles.cardTitle}>{item.nome}</Text>
+        <Text style={styles.cardSubtitle}>{item.raca}</Text>
+      </ImageBackground>
+    </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {!fontsLoaded ? (
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Carregando fontes...</Text>
-        </View>
-      ) : (
-        <>
-          <LinearGradient
-            colors={["#EC5475", "#9C127C"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.headerBar}
-          >
-            <Image source={LogoNav} style={styles.logoNav} />
-            <View style={styles.searchContainer}>
-              <MaterialIcons name="search" size={20} color="#EC5475" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Pesquisar"
-                placeholderTextColor="#EC5475"
-                value={searchText}
-                onChangeText={handleSearch}
-              />
-            </View>
-
-            <Image
-              source={{ uri: "https://i.pravatar.cc/100" }}
-              style={styles.userImage}
-            />
-          </LinearGradient>
-
-          <FlatList
-            data={filteredPets}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.columnWrapper}
-            contentContainerStyle={styles.listContainer}
+      <LinearGradient
+        colors={["#EC5475", "#9C127C"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.headerBar}
+      >
+        <Image source={LogoNav} style={styles.logoNav} />
+        <View style={styles.searchContainer}>
+          <MaterialIcons name="search" size={20} color="#EC5475" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            placeholderTextColor="#EC5475"
+            value={searchText}
+            onChangeText={handleSearch}
           />
+        </View>
+        <Image
+          source={{ uri: "https://i.pravatar.cc/100" }}
+          style={styles.userImage}
+        />
+      </LinearGradient>
 
-          <View style={styles.footer}>
-            <TouchableOpacity
-              style={styles.footerItem}
-              onPress={() => navigation.navigate("Home")}
-            >
-              <Image source={IconHome} style={styles.footerIcon} />
-              <Text style={styles.footerText}>Início</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.footerItem}>
-              <Image source={IconAdocao} style={styles.footerIcon} />
-              <Text style={styles.footerText}>Adoção</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.footerItem}>
-              <Image source={IconAlerta} style={styles.footerIcon} />
-              <Text style={styles.footerText}>Alerta!</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.footerItem}>
-              <Image source={IconMensagens} style={styles.footerIcon} />
-              <Text style={styles.footerText}>Mensagens</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bottomItem}
-              onPress={() => navigation.navigate("Menu")}
-            >
-              <Image source={IconMenu} style={styles.bottomIcon} />
-              <Text style={styles.bottomLabel}>Menu</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
+      <FlatList
+        data={filteredPets}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.listContainer}
+      />
+      <FooterNav />
+    </SafeAreaView>
+  );
+
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={["#EC5475", "#9C127C"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.headerBar}
+      >
+        <Image source={LogoNav} style={styles.logoNav} />
+        <View style={styles.searchContainer}>
+          <MaterialIcons name="search" size={20} color="#EC5475" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar"
+            placeholderTextColor="#EC5475"
+            value={searchText}
+            onChangeText={handleSearch}
+          />
+        </View>
+
+        <Image
+          source={{ uri: "https://i.pravatar.cc/100" }}
+          style={styles.userImage}
+        />
+      </LinearGradient>
+
+      <FlatList
+        data={filteredPets}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.listContainer}
+      />
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.footerItem}
+          onPress={() => navigation.navigate("Home")}
+        >
+          <Image source={IconHome} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Início</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem}>
+          <Image source={IconAdocao} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Adoção</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem}>
+          <Image source={IconAlerta} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Alerta!</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerItem}>
+          <Image source={IconMensagens} style={styles.footerIcon} />
+          <Text style={styles.footerText}>Mensagens</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.bottomItem}
+          onPress={() => navigation.navigate("Menu")}
+        >
+          <Image source={IconMenu} style={styles.bottomIcon} />
+          <Text style={styles.bottomLabel}>Menu</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -145,18 +194,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFF4EC",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFF4EC",
-  },
-  loadingText: {
-    fontSize: 18,
-    color: "#EC5475",
-    fontFamily: "Poppins-Regular",
-  },
-  // ... seus outros estilos
   headerBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -187,17 +224,10 @@ const styles = StyleSheet.create({
     color: "#EC5475",
   },
   userImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  logoNav: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
-    resizeMode: "contain",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginLeft: 10,
   },
   listContainer: {
     paddingHorizontal: 10,
@@ -223,7 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: "contain",
     width: "113%",
-    height: "120%",
+    height: "120%", // isso vai garantir que as patinhas apareçam sem cortar
   },
   cardImage: {
     width: "85%",
@@ -233,13 +263,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontFamily: "Chewy-Regular",
+    fontFamily: "Chewy-Regular", // Certifique-se de que essa fonte foi carregada
     color: "#3C55D2",
     marginTop: 6,
   },
   cardSubtitle: {
     fontSize: 12,
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Poppins-Regular", // Certifique-se de que essa fonte foi carregada
     color: "#3C55D2",
     marginBottom: 8,
   },
@@ -247,15 +277,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#fff",
     marginTop: 4,
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Poppins",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 10,
-    backgroundColor: "#EC5475",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    alignItems: "center",
+    backgroundColor: "#F45B74",
+    paddingVertical: 15,
+    paddingHorizontal: 20, // dá uma margem interna
+    borderRadius: 10, // arredondamento total
+    position: "absolute",
+    bottom: 15, // afasta da borda inferior
+    left: 10,   // afasta da lateral esquerda
+    right: 10,  // afasta da lateral direita
+    elevation: 10, // sombra Android
+    zIndex: 99,
+    shadowColor: "#000", // sombra iOS
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   footerItem: {
     alignItems: "center",
@@ -265,14 +306,22 @@ const styles = StyleSheet.create({
     height: 24,
     marginBottom: 2,
   },
+  userImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  logoNav: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    resizeMode: "contain",
+  },
   footerText: {
     fontSize: 10,
     color: "white",
-    fontFamily: "Poppins-Regular",
-  },
-  bottomIcon: {
-    width: 30,
-    height: 24,
   },
 });
 
