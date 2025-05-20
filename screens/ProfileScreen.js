@@ -1,35 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TouchableOpacity } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
 
+  // Carrega o perfil do usuário
   const loadUserProfile = async () => {
     try {
       setLoading(true);
       
-      // Opção 1: Buscar diretamente o usuário atual salvo
-      const usuarioAtual = await AsyncStorage.getItem('usuarioAtual');
-      
-      if (usuarioAtual) {
-        setUserData(JSON.parse(usuarioAtual));
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error("ID do usuário não encontrado.");
+      }
+
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setUserData(data.data);
       } else {
-        // Opção 2: Buscar por email (método alternativo)
-        const email = await AsyncStorage.getItem('loggedInUserEmail');
-        const usuarios = JSON.parse(await AsyncStorage.getItem('usuarios')) || [];
-        const usuarioEncontrado = usuarios.find(u => u.email === email);
-        
-        if (usuarioEncontrado) {
-          setUserData(usuarioEncontrado);
-        }
+        console.error("Erro ao buscar usuário:", data);
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error("Erro na requisição:", error);
     } finally {
       setLoading(false);
     }
@@ -40,6 +38,47 @@ export default function ProfileScreen() {
       loadUserProfile();
     }
   }, [isFocused]);
+
+  // Atualizar dados do usuário
+  const updateUserProfile = async (newData) => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newData),
+      });
+
+      if (response.ok) {
+        Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+        loadUserProfile();
+      } else {
+        console.error("Erro ao atualizar perfil");
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+    }
+  };
+
+  // Excluir usuário
+  const deleteUserProfile = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        Alert.alert("Sucesso", "Conta excluída com sucesso!");
+        await AsyncStorage.clear();
+        navigation.navigate("Login");
+      } else {
+        console.error("Erro ao excluir conta");
+      }
+    } catch (error) {
+      console.error("Erro na requisição:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -80,8 +119,16 @@ export default function ProfileScreen() {
         <InfoItem label="Email" value={userData.email} />
         <InfoItem label="Telefone" value={userData.telefone} />
         <InfoItem label="Cidade" value={userData.cidade} />
-        <InfoItem label="Endereço" value={userData.endereco} />
+        <InfoItem label="Endereço" value={userData.logradouro} />
       </View>
+
+      <TouchableOpacity style={styles.button} onPress={() => updateUserProfile({ telefone: "Novo Telefone" })}>
+        <Text style={styles.buttonText}>Atualizar Dados</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteButton} onPress={deleteUserProfile}>
+        <Text style={styles.deleteButtonText}>Excluir Conta</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
