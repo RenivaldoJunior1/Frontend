@@ -15,7 +15,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     // Validação de campos vazios
-    if (!email || !senha) {
+    if (!email.trim() || !senha.trim()) {
       Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
     }
@@ -29,15 +29,18 @@ export default function LoginScreen() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: email,
-          password: senha // Ajustado para o nome do campo esperado pela API
+          email: email.trim(),
+          password: senha.trim()
         }),
       });
 
       const responseData = await response.json();
 
+      console.log("Resposta do servidor:", responseData);
+
       if (!response.ok) {
-        throw new Error(responseData.message || 'Erro ao fazer login');
+        Alert.alert('Erro', responseData.message || 'Erro ao fazer login');
+        return;
       }
 
       // Login bem-sucedido
@@ -53,6 +56,8 @@ export default function LoginScreen() {
         });
         
         const userInfo = await userInfoResponse.json();
+        
+        console.log("Dados do usuário:", userInfo);
         
         if (userInfoResponse.ok && userInfo.data) {
           await AsyncStorage.setItem('usuarioAtual', JSON.stringify(userInfo.data));
@@ -70,8 +75,10 @@ export default function LoginScreen() {
         Alert.alert('Erro', 'Token não encontrado na resposta.');
       }
     } catch (error) {
-      Alert.alert('Erro', error.message || 'Não foi possível fazer login. Verifique suas credenciais.');
       console.error("Erro no login:", error);
+      setTimeout(() => {
+        Alert.alert('Erro', error.message || 'Não foi possível fazer login. Verifique suas credenciais.');
+      }, 0);
     } finally {
       setLoading(false);
     }

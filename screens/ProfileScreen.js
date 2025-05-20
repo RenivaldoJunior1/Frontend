@@ -1,82 +1,92 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused } from '@react-navigation/native';
+import React, { useEffect, useState } from "react";
+import { 
+  View, Text, Image, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert
+} from "react-native";
+import { Ionicons, Feather, FontAwesome } from "@expo/vector-icons";
+import styled from "styled-components/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import FooterNav from "../components/FooterNav";
 
-export default function ProfileScreen({ navigation }) {
-  const [userData, setUserData] = useState(null);
+export const HeaderContainer = styled(LinearGradient).attrs({
+  colors: ["#E13E79", "#9C27B0"],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
+})`
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+`;
+
+const PerfilClinicaPets = () => {
+  const navigation = useNavigation();
+  const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const isFocused = useIsFocused();
+  const [pets, setPets] = useState([]);
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://pethopeapi.onrender.com/api/users');
+        const data = await response.json();
 
-  // Carrega o perfil do usuário
-  const loadUserProfile = async () => {
+        console.log("Dados do usuário:", data); // Debugging
+
+        if (response.ok && data.data.length > 0) {
+          const usuario = data.data[0]; // Pegando o primeiro usuário
+          setUserInfo(usuario);
+          await AsyncStorage.setItem("userInfo", JSON.stringify(usuario));
+        } else {
+          throw new Error("Usuário não encontrado.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+        Alert.alert("Erro", error.message || "Não foi possível carregar os dados.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchPets = async () => {
+      try {
+        const petsData = await AsyncStorage.getItem("pets");
+        if (petsData) {
+          setPets(JSON.parse(petsData));
+        }
+      } catch (error) {
+        console.error("Erro ao buscar pets:", error);
+      }
+    };
+
+    fetchUserData();
+    fetchPets();
+  }, []);
+
+  const updateUserProfile = async (newData) => {
     try {
-      setLoading(true);
-      
-      const userId = await AsyncStorage.getItem('userId');
-      if (!userId) {
+      if (!userInfo || !userInfo.id) {
         throw new Error("ID do usuário não encontrado.");
       }
 
-      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setUserData(data.data);
-      } else {
-        console.error("Erro ao buscar usuário:", data);
-      }
-    } catch (error) {
-      console.error("Erro na requisição:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isFocused) {
-      loadUserProfile();
-    }
-  }, [isFocused]);
-
-  // Atualizar dados do usuário
-  const updateUserProfile = async (newData) => {
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userInfo.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newData),
       });
 
       if (response.ok) {
-        Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
-        loadUserProfile();
+        Alert.alert("Sucesso", "Perfil atualizado!");
+        fetchUserData();
       } else {
-        console.error("Erro ao atualizar perfil");
+        throw new Error("Erro ao atualizar perfil.");
       }
     } catch (error) {
-      console.error("Erro na requisição:", error);
-    }
-  };
-
-  // Excluir usuário
-  const deleteUserProfile = async () => {
-    try {
-      const userId = await AsyncStorage.getItem('userId');
-      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${userId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        Alert.alert("Sucesso", "Conta excluída com sucesso!");
-        await AsyncStorage.clear();
-        navigation.navigate("Login");
-      } else {
-        console.error("Erro ao excluir conta");
-      }
-    } catch (error) {
-      console.error("Erro na requisição:", error);
+      console.error("Erro ao atualizar perfil:", error);
+      Alert.alert("Erro", error.message || "Não foi possível atualizar.");
     }
   };
 
@@ -89,122 +99,173 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
-  if (!userData) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Não foi possível carregar os dados do perfil</Text>
-        <TouchableOpacity onPress={loadUserProfile}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.profileHeader}>
-        {userData.photo ? (
-          <Image source={{ uri: userData.photo }} style={styles.profileImage} />
-        ) : (
-          <View style={styles.profileImagePlaceholder}>
-            <Text style={styles.initials}>
-              {userData.nome ? userData.nome.charAt(0) : 'U'}
-            </Text>
+    <View style={styles.container}>
+      <HeaderContainer>
+        <Image source={require("../assets/PataHome.png")} style={styles.logo} />
+        <View style={styles.searchContainer}>
+          <FontAwesome name="search" size={20} color="#E13E79" />
+          <TextInput style={styles.searchInput} placeholder="Pesquisar" placeholderTextColor="#E13E79" />
+          <TouchableOpacity>
+            <Ionicons name="options-outline" size={20} color="#E13E79" />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+          <Image source={require("../assets/profile.png")} style={styles.profileImage} />
+        </TouchableOpacity>
+      </HeaderContainer>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {userInfo && (
+          <View style={styles.card}>
+            <View style={styles.profileRow}>
+              <Image source={{ uri: userInfo.photo || "https://randomuser.me/api/portraits/women/44.jpg" }} style={styles.avatarLarge} />
+              <View style={styles.profileText}>
+                <Text><Text style={styles.bold}>Telefone:</Text> {userInfo.telefone}</Text>
+                <Text><Text style={styles.bold}>Email:</Text> {userInfo.email}</Text>
+                <Text><Text style={styles.bold}>Cidade:</Text> {userInfo.cidade}</Text>
+                <Text><Text style={styles.bold}>Nome:</Text> {userInfo.nome}</Text>
+                <Text><Text style={styles.bold}>Endereço:</Text> {userInfo.endereco}</Text>
+                <Text><Text style={styles.bold}>CNPJ/CPF:</Text> {userInfo.cpfCnpj}</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.editButton} onPress={() => updateUserProfile({ telefone: "Novo Telefone" })}>
+              <Feather name="edit" size={16} color="#2563eb" />
+              <Text style={styles.editButtonText}>Editar</Text>
+            </TouchableOpacity>
           </View>
         )}
-        <Text style={styles.userName}>{userData.nome || 'Usuário'}</Text>
-      </View>
+      </ScrollView>
 
-      <View style={styles.infoContainer}>
-        <InfoItem label="Email" value={userData.email} />
-        <InfoItem label="Telefone" value={userData.telefone} />
-        <InfoItem label="Cidade" value={userData.cidade} />
-        <InfoItem label="Endereço" value={userData.logradouro} />
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={() => updateUserProfile({ telefone: "Novo Telefone" })}>
-        <Text style={styles.buttonText}>Atualizar Dados</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.deleteButton} onPress={deleteUserProfile}>
-        <Text style={styles.deleteButtonText}>Excluir Conta</Text>
-      </TouchableOpacity>
-    </ScrollView>
+      <FooterNav />
+    </View>
   );
-}
+};
 
-const InfoItem = ({ label, value }) => (
-  <View style={styles.infoItem}>
-    <Text style={styles.label}>{label}:</Text>
-    <Text style={styles.value}>{value || 'Não informado'}</Text>
-  </View>
-);
+export default PerfilClinicaPets;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: "#fff0f5",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileHeader: {
-    alignItems: 'center',
-    padding: 20,
+  scrollContent: {
+    paddingBottom: 80,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#E34D76',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    marginLeft: 10,
   },
-  profileImagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E34D76',
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
-  initials: {
-    fontSize: 40,
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  infoContainer: {
-    padding: 20,
-  },
-  infoItem: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: 'bold',
-  },
-  value: {
-    fontSize: 18,
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    backgroundColor: "white",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     marginTop: 5,
   },
-  errorText: {
-    fontSize: 18,
-    color: '#E34D76',
-    textAlign: 'center',
-    marginTop: 50,
+  searchInput: {
+    marginLeft: 8,
+    fontSize: 14,
+    flex: 1,
   },
-  retryText: {
-    fontSize: 16,
-    color: '#E34D76',
-    textAlign: 'center',
-    marginTop: 20,
-    textDecorationLine: 'underline',
+  card: {
+    backgroundColor: "#E9D8FD",
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 12,
+    marginBottom: 24,
+    marginTop: 25,
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 15,
+  },
+  avatarLarge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 12,
+  },
+  profileText: {
+    flex: 1,
+  },
+  bold: {
+    fontWeight: "bold",
+  },
+  editButton: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  editButtonText: {
+    color: "#2563eb",
+    marginLeft: 4,
+  },
+  petsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 12,
+    marginBottom: 12,
+  },
+  petsTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2563eb",
+  },
+  cadastrarBtn: {
+    backgroundColor: "#ec4899",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  cadastrarBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  petGrid: {
+    paddingHorizontal: 12,
+    gap: 12,
+    marginBottom: 20,
+  },
+  petCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+  petImage: {
+    width: "100%",
+    height: 120,
+  },
+  petContent: {
+    alignItems: "center",
+    padding: 8,
+  },
+  petName: {
+    fontWeight: "bold",
+    color: "#2563eb",
+  },
+  petBreed: {
+    fontSize: 12,
+    color: "#666",
+  },
+  editPetButton: {
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
   },
 });
