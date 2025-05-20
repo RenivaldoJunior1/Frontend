@@ -1,11 +1,9 @@
-// components/FooterNav.js
-
 import React from "react";
 import { View, TouchableOpacity, Image, Text, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // necessário para navegação funcionar dentro de componentes
+import { useNavigation } from "@react-navigation/native";
 
 const FooterNav = () => {
-  const navigation = useNavigation(); // permite usar navegação mesmo fora da tela principal
+  const navigation = useNavigation();
 
   return (
     <View style={styles.footer}>
@@ -39,26 +37,26 @@ const FooterNav = () => {
 // Estilos comentados
 const styles = StyleSheet.create({
   footer: {
-    flexDirection: "row", // organiza os itens em linha
-    justifyContent: "space-around", // espaçamento igual entre os itens
-    alignItems: "center", // centraliza verticalmente
-    backgroundColor: "#F45B74", // cor de fundo da navbar
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center", 
+    backgroundColor: "#F45B74", 
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderRadius: 10,
-    position: "absolute", // fixa na parte inferior
+    position: "absolute", 
     bottom: 15,
     left: 10,
     right: 10,
-    elevation: 10, // sombra Android
+    elevation: 10, 
     zIndex: 99,
-    shadowColor: "#000", // sombra iOS
+    shadowColor: "#000", 
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
   footerItem: {
-    alignItems: "center", // centraliza os ícones e textos
+    alignItems: "center", 
   },
   footerIcon: {
     width: 30,
