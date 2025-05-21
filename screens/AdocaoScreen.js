@@ -120,73 +120,6 @@ const AdocaoScreen = () => {
       <FooterNav />
     </SafeAreaView>
   );
-
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={["#EC5475", "#9C127C"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.headerBar}
-      >
-        <Image source={LogoNav} style={styles.logoNav} />
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color="#EC5475" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Pesquisar"
-            placeholderTextColor="#EC5475"
-            value={searchText}
-            onChangeText={handleSearch}
-          />
-        </View>
-
-        <Image
-          source={{ uri: "https://i.pravatar.cc/100" }}
-          style={styles.userImage}
-        />
-      </LinearGradient>
-
-      <FlatList
-        data={filteredPets}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.listContainer}
-      />
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.footerItem}
-          onPress={() => navigation.navigate("Home")}
-        >
-          <Image source={IconHome} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Início</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconAdocao} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Adoção</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconAlerta} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem}>
-          <Image source={IconMensagens} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.bottomItem}
-          onPress={() => navigation.navigate("Menu")}
-        >
-          <Image source={IconMenu} style={styles.bottomIcon} />
-          <Text style={styles.bottomLabel}>Menu</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
 };
 
 const styles = StyleSheet.create({
@@ -253,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: "contain",
     width: "113%",
-    height: "120%", // isso vai garantir que as patinhas apareçam sem cortar
+    height: "120%",
   },
   cardImage: {
     width: "85%",
@@ -263,13 +196,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontFamily: "Chewy-Regular", // Certifique-se de que essa fonte foi carregada
+    fontFamily: "Chewy-Regular", 
     color: "#3C55D2",
     marginTop: 6,
   },
   cardSubtitle: {
     fontSize: 12,
-    fontFamily: "Poppins-Regular", // Certifique-se de que essa fonte foi carregada
+    fontFamily: "Poppins-Regular",
     color: "#3C55D2",
     marginBottom: 8,
   },
@@ -285,15 +218,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F45B74",
     paddingVertical: 15,
-    paddingHorizontal: 20, // dá uma margem interna
-    borderRadius: 10, // arredondamento total
+    paddingHorizontal: 20, 
+    borderRadius: 10,
     position: "absolute",
-    bottom: 15, // afasta da borda inferior
-    left: 10,   // afasta da lateral esquerda
-    right: 10,  // afasta da lateral direita
-    elevation: 10, // sombra Android
+    bottom: 15, 
+    left: 10,   
+    right: 10, 
+    elevation: 10, 
     zIndex: 99,
-    shadowColor: "#000", // sombra iOS
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
