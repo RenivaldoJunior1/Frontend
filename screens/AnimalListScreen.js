@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import { useNavigation } from '@react-navigation/native';
 
 export default function AnimalListScreen({ route, navigation }) {
   const [animais, setAnimais] = useState([]);
@@ -20,7 +19,6 @@ export default function AnimalListScreen({ route, navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Lista de Animais Disponíveis</Text>
 
-      {/* Exibindo os animais cadastrados */}
       {animais && animais.length > 0 ? (
         <FlatList
           data={animais}

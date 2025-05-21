@@ -17,14 +17,7 @@ import { ImageBackground } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 
-import PataIcon from "../assets/patinha.png";
-import IconHome from "../assets/Home.png";
-import IconAdocao from "../assets/patinha +.png";
-import IconAlerta from "../assets/Flag.png";
-import IconMensagens from "../assets/Mail.png";
 import LogoNav from "../assets/LogoNav.png";
-import IconMenu from "../assets/Menu.png";
-
 import Pipoca from "../assets/CardPet.png";
 import Max from "../assets/CardPet.png";
 import Luna from "../assets/CardPet.png";
