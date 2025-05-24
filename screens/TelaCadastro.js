@@ -22,7 +22,7 @@ export default function CadastroScreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
 
   const navigation = useNavigation();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const isLargeScreen = width > 600;
 
   const validarEmail = (email) => {
@@ -70,7 +70,6 @@ export default function CadastroScreen() {
 
       const usuarioExistente = usuarios.find(user => user.cpf === cpf);
       if (usuarioExistente) {
-        // Verificando se o CPF já foi cadastrado como "Usuario" ou "ONG"
         if (usuarioExistente.tipoCadastro === 'usuario' && tipoCadastro === 'ong') {
           Alert.alert('Erro', 'Este CPF já foi cadastrado como Usuário!');
           return;
