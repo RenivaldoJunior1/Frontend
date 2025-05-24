@@ -24,7 +24,6 @@ export default function CadastroClinicascreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função para formatar o CNPJ no padrão XX.XXX.XXX/XXXX-XX
   const formatarCNPJ = (cnpj) => {
     const cnpjSemFormatacao = cnpj.replace(/\D/g, '');
     if (cnpjSemFormatacao.length <= 14) {
@@ -33,7 +32,6 @@ export default function CadastroClinicascreen() {
     return cnpjSemFormatacao.slice(0, 14);
   };
 
-  // Função para formatar o telefone no padrão (xx)xxxxx-xxxx sem espaços
   const formatarTelefone = (telefone) => {
     const telefoneSemFormatacao = telefone.replace(/\D/g, '');
     
@@ -60,44 +58,37 @@ export default function CadastroClinicascreen() {
   };
 
   const handleCadastro = async () => {
-    // Validação dos campos obrigatórios
     if (!cnpj || !nome || !telefone || !cidade || !endereco || !razaoSocial || !email || !senha || !confirmarSenha) {
       Alert.alert('Atenção', 'Preencha todos os campos obrigatórios!');
       return;
     }
   
-    // Validação do CNPJ (apenas números e 14 dígitos)
     if (cnpj.length !== 14) {
       Alert.alert('Erro', 'O CNPJ deve ter 14 dígitos!');
       return;
     }
   
-    // Validação do telefone (exatamente 14 caracteres incluindo formatação)
-    const telefoneFormatado = telefone.replace(/\s/g, ''); // Remove espaços
+    const telefoneFormatado = telefone.replace(/\s/g, '');
     if (telefoneFormatado.length !== 14) {
       Alert.alert('Erro', 'O telefone deve estar no formato (xx)xxxxx-xxxx');
       return;
     }
   
-    // Validação das senhas
     if (senha !== confirmarSenha) {
       Alert.alert('Erro', 'As senhas não coincidem!');
       return;
     }
       
-    // Verificação de senha com no mínimo 6 caracteres
     if (senha.length < 6) {
       Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
       return;
     }
   
-    // Validação do email
     if (!validarEmail(email)) {
       Alert.alert('Erro', 'Formato de e-mail inválido!');
       return;
     }
   
-    // Preparar URLs com protocolo HTTPS se não estiver presente
     function prepararURL(url) {
       if (!url) return undefined;
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -128,11 +119,9 @@ export default function CadastroClinicascreen() {
         dadosONG.nomeFantasia = nomeFantasia;
       }
   
-      // Remover o campo tipoServico, já que não parece estar na especificação
-      // Se quiser manter, descomente a linha abaixo
-      // if (ofereceServico && tipoServico && tipoServico.trim() !== '') {
-      //   dadosONG.tipoServico = tipoServico;
-      // }
+      if (ofereceServico && tipoServico && tipoServico.trim() !== '') {
+        dadosONG.tipoServico = tipoServico;
+      }
     
       const response = await fetch('https://pethopeapi.onrender.com/api/users/ong', {
         method: 'POST',

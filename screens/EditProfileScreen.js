@@ -1,18 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Image, Alert, SafeAreaView, ScrollView
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import styled from 'styled-components/native';
+import FooterNav from "../components/FooterNav";
+
+const HeaderContainer = styled(LinearGradient).attrs({
+  colors: ['#E13E79', '#9C27B0'],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 0 },
+})`
+  flex-direction: row;
+  align-items: center;
+  padding: 16px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  justify-content: space-between;
+`;
+
+const Header = () => {
+  const navigation = useNavigation();
+
+  return (
+    <HeaderContainer>
+      <Image source={require('../assets/PataHome.png')} style={styles.logo} />
+      <View style={styles.searchContainer}>
+        <FontAwesome name="search" size={20} color="#E13E79" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Pesquisar"
+          placeholderTextColor="#E13E79"
+        />
+        <TouchableOpacity>
+          <Ionicons name="options-outline" size={20} color="#E13E79" />
+        </TouchableOpacity>
+      </View>
+      <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+        <Image source={require('../assets/profile.png')} style={styles.profileImageSmall} />
+      </TouchableOpacity>
+    </HeaderContainer>
+  );
+};
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
+  const [tipoUsuario, setTipoUsuario] = useState('usuario');
+
   const [userData, setUserData] = useState({
-    name: '',
     email: '',
     phone: '',
-    photo: null
+    city: '',
+    address: '',
+    photo: null,
+    site: '',
+    instagram: '',
+    facebook: '',
+    offersService: false,
   });
 
   useEffect(() => {
@@ -20,11 +69,17 @@ export default function EditProfileScreen() {
       const userJson = await AsyncStorage.getItem('currentUser');
       if (userJson) {
         const user = JSON.parse(userJson);
+        setTipoUsuario(user.tipoUsuario || 'usuario');
         setUserData({
-          name: user.name || '',
           email: user.email || '',
           phone: user.phone || '',
-          photo: user.photo || null
+          city: user.city || '',
+          address: user.address || '',
+          photo: user.photo || null,
+          site: user.site || '',
+          instagram: user.instagram || '',
+          facebook: user.facebook || '',
+          offersService: user.offersService || false,
         });
       }
     };
@@ -57,9 +112,14 @@ export default function EditProfileScreen() {
         const user = JSON.parse(userJson);
         const updatedUser = {
           ...user,
-          name: userData.name,
           phone: userData.phone,
-          photo: userData.photo
+          city: userData.city,
+          address: userData.address,
+          photo: userData.photo,
+          site: userData.site,
+          instagram: userData.instagram,
+          facebook: userData.facebook,
+          offersService: userData.offersService,
         };
         await AsyncStorage.setItem('currentUser', JSON.stringify(updatedUser));
         Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
@@ -67,71 +127,138 @@ export default function EditProfileScreen() {
       }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
-      console.error('Error saving profile:', error);
+      console.error('Erro ao salvar perfil:', error);
     }
   };
 
   return (
-    <LinearGradient colors={['#EB5375', '#E34D76', '#D84477', '#C73578']} style={styles.container}>
-      <View style={styles.content}>
-        <TouchableOpacity onPress={handleChangePhoto} style={styles.photoContainer}>
-          {userData.photo ? (
-            <Image source={{ uri: userData.photo }} style={styles.profilePhoto} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Ionicons name="person" size={50} color="#FFF" />
-            </View>
+    <SafeAreaView style={styles.container}>
+      <Header />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.blueBox}>
+          <TouchableOpacity onPress={handleChangePhoto} style={styles.photoContainer}>
+            {userData.photo ? (
+              <Image source={{ uri: userData.photo }} style={styles.profilePhoto} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Ionicons name="person" size={50} color="#FFF" />
+              </View>
+            )}
+            <Text style={styles.changePhotoText}>Editar Foto</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.blueBox}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Telefone</Text>
+            <TextInput
+              style={styles.input}
+              value={userData.phone}
+              onChangeText={(text) => setUserData({ ...userData, phone: text })}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Cidade</Text>
+            <TextInput
+              style={styles.input}
+              value={userData.city}
+              onChangeText={(text) => setUserData({ ...userData, city: text })}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Endereço</Text>
+            <TextInput
+              style={styles.input}
+              value={userData.address}
+              onChangeText={(text) => setUserData({ ...userData, address: text })}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              value={userData.email}
+              editable={false}
+            />
+          </View>
+
+          {(tipoUsuario === 'ong' || tipoUsuario === 'clinica') && (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Site</Text>
+                <TextInput
+                  style={styles.input}
+                  value={userData.site}
+                  onChangeText={(text) => setUserData({ ...userData, site: text })}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Instagram</Text>
+                <TextInput
+                  style={styles.input}
+                  value={userData.instagram}
+                  onChangeText={(text) => setUserData({ ...userData, instagram: text })}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Facebook</Text>
+                <TextInput
+                  style={styles.input}
+                  value={userData.facebook}
+                  onChangeText={(text) => setUserData({ ...userData, facebook: text })}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Oferece serviço?</Text>
+                <View style={{ flexDirection: 'row', gap: 20, marginTop: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => setUserData({ ...userData, offersService: true })}
+                    style={[
+                      styles.toggleButton,
+                      userData.offersService && styles.selectedToggle,
+                    ]}
+                  >
+                    <Text style={{ color: userData.offersService ? '#FFF' : '#000' }}>Sim</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setUserData({ ...userData, offersService: false })}
+                    style={[
+                      styles.toggleButton,
+                      !userData.offersService && styles.selectedToggle,
+                    ]}
+                  >
+                    <Text style={{ color: !userData.offersService ? '#FFF' : '#000' }}>Não</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </>
           )}
-          <Text style={styles.changePhotoText}>Alterar Foto</Text>
-        </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Nome</Text>
-          <TextInput
-            style={styles.input}
-            value={userData.name}
-            onChangeText={(text) => setUserData({ ...userData, name: text })}
-          />
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Salvar</Text>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={[styles.input, styles.disabledInput]}
-            value={userData.email}
-            editable={false}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Telefone</Text>
-          <TextInput
-            style={styles.input}
-            value={userData.phone}
-            onChangeText={(text) => setUserData({ ...userData, phone: text })}
-            keyboardType="phone-pad"
-          />
-        </View>
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Salvar Alterações</Text>
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
+      </ScrollView>
+      <FooterNav />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    backgroundColor: '#FFF',
   },
-  content: {
-    flex: 1,
-    backgroundColor: '#FFF4EC',
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+  scrollContent: {
     padding: 20,
+    paddingBottom: 100,
   },
   photoContainer: {
     alignItems: 'center',
@@ -156,38 +283,81 @@ const styles = StyleSheet.create({
   },
   changePhotoText: {
     marginTop: 10,
-    color: '#C73578',
-    fontWeight: 'bold',
+    color: '#2B2B52',
+    textDecorationLine: 'underline',
   },
   inputContainer: {
     marginBottom: 15,
   },
   label: {
     fontSize: 16,
-    color: '#333',
+    color: '#2B2B52',
     marginBottom: 5,
     fontWeight: 'bold',
+    left: 8,
   },
   input: {
     backgroundColor: '#FFF',
-    padding: 15,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 30,
     fontSize: 16,
+    marginTop: 2,
   },
   disabledInput: {
-    backgroundColor: '#EEE',
-    color: '#666',
+    backgroundColor: '#FFF',
   },
   saveButton: {
-    backgroundColor: '#B2BC29',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#F45B74',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 25,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
+    alignSelf: 'center',
   },
   saveButtonText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+  blueBox: {
+    backgroundColor: '#E6E6FA',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 10,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 5,
+    color: '#E13E79',
+  },
+  profileImageSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  toggleButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#999',
+  },
+  selectedToggle: {
+    backgroundColor: '#F45B74',
+    borderColor: '#F45B74',
   },
 });

@@ -24,15 +24,10 @@ export default function CadastroClinicascreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função para formatar o CNPJ com pontuação
   const formatCNPJ = (value) => {
-    // Remove qualquer caractere não-numérico
     const numericValue = value.replace(/\D/g, '');
-    
-    // Limita a 14 dígitos
     const limitedValue = numericValue.slice(0, 14);
     
-    // Aplica a formatação do CNPJ: XX.XXX.XXX/XXXX-XX
     if (limitedValue.length <= 2) {
       return limitedValue;
     } else if (limitedValue.length <= 5) {
@@ -46,15 +41,10 @@ export default function CadastroClinicascreen() {
     }
   };
 
-  // Função para formatar o telefone (XX)XXXXX-XXXX
   const formatTelefone = (value) => {
-    // Remove qualquer caractere não-numérico
     const numericValue = value.replace(/\D/g, '');
-    
-    // Limita a 11 dígitos
     const limitedValue = numericValue.slice(0, 11);
     
-    // Aplica a formatação
     if (limitedValue.length <= 2) {
       return `(${limitedValue}`;
     } else if (limitedValue.length <= 7) {
@@ -88,7 +78,6 @@ export default function CadastroClinicascreen() {
     try {
       setIsLoading(true);
 
-      // Prepara o objeto para enviar ao backend conforme a especificação da API
       const dadosClinica = {
         cnpj: cnpjLimpo,
         responsavelNome: nome,
@@ -109,7 +98,6 @@ export default function CadastroClinicascreen() {
 
       console.log(dadosClinica)
 
-      // Faz a requisição POST para a API
       const resposta = await fetch('https://pethopeapi.onrender.com/api/users/clinica', {
         method: 'POST',
         headers: {
@@ -119,11 +107,9 @@ export default function CadastroClinicascreen() {
       });
 
       console.log("=======================================================================")
-      // Processa a resposta
       const dadosResposta = await resposta.json();
       console.log(dadosResposta)
       if (!resposta.ok) {
-        // Se a resposta não for bem-sucedida (status diferente de 2xx)
         throw new Error(dadosResposta.message || 'Erro ao cadastrar clínica');
       }
 

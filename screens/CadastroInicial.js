@@ -21,7 +21,7 @@ export default function CadastroScreen() {
         
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Cadastrar</Text>
-            <Image source={require("../assets/patinha-login.png")} style={styles.pawIcon}/>
+            <Image source={require("../assets/patinha.png")} style={styles.pawIcon}/>
           </View>
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Usuario')}>
               <LinearGradient colors={['#F45B74', '#F45B74']} style={styles.buttonGradient}>
@@ -140,15 +140,16 @@ const styles = StyleSheet.create({
   buttonText: { 
     color: '#ffffff', 
     fontSize: 18, 
-    fontWeight: 'Poppins' 
+    fontWeight: 'bold' 
   },
 
   pawIcon: {
     marginLeft: -5,
-    width: 35,
-    height: 35,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
-    marginBottom: 80,
+    marginBottom: 70,
+    marginTop:-15
   },
 
   voltarImagem: { 

@@ -18,7 +18,6 @@ export default function CadastroUsuarioScreen() {
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função para formatar o CPF no padrão xxx.xxx.xxx-xx
   const formatarCPF = (cpf) => {
     const cpfSemFormatacao = cpf.replace(/\D/g, '');
     
@@ -33,7 +32,6 @@ export default function CadastroUsuarioScreen() {
     }
   };
 
-  // Função para formatar o telefone no padrão (xx)xxxxx-xxxx
   const formatarTelefone = (telefone) => {
     const telefoneSemFormatacao = telefone.replace(/\D/g, '');
     
@@ -70,25 +68,21 @@ export default function CadastroUsuarioScreen() {
       return;
     }
   
-    // Verificação de senha com no mínimo 6 caracteres
     if (senha.length < 6) {
       Alert.alert('Erro', 'A senha deve ter no mínimo 6 caracteres!');
       return;
     }
 
-    // Validar formato do CPF (xxx.xxx.xxx-xx)
     if (cpf.length !== 14) {
       Alert.alert('Erro', 'O CPF deve estar no formato xxx.xxx.xxx-xx');
       return;
     }
 
-    // Validar formato do telefone ((xx)xxxxx-xxxx)
     if (telefone.length !== 14) {
       Alert.alert('Erro', 'O telefone deve estar no formato (xx)xxxxx-xxxx');
       return;
     }
 
-    // Validar formato do email
     if (!validarEmail(email)) {
       Alert.alert('Erro', 'Formato de e-mail inválido!');
       return;

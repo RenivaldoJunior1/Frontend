@@ -34,10 +34,10 @@ const PerfilClinicaPets = () => {
         const response = await fetch('https://pethopeapi.onrender.com/api/users');
         const data = await response.json();
 
-        console.log("Dados do usuário:", data); // Debugging
+        console.log("Dados do usuário:", data);
 
         if (response.ok && data.data.length > 0) {
-          const usuario = data.data[0]; // Pegando o primeiro usuário
+          const usuario = data.data[0]; 
           setUserInfo(usuario);
           await AsyncStorage.setItem("userInfo", JSON.stringify(usuario));
         } else {
