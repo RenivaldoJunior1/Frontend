@@ -48,7 +48,6 @@ export default function BuscaAnimaisScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Buscar Animais</Text>
 
-      {/* Filtros */}
       <TextInput
         style={styles.input}
         placeholder="Cidade"
@@ -96,7 +95,6 @@ export default function BuscaAnimaisScreen() {
 
       <Button title="Aplicar Filtros" onPress={aplicarFiltros} />
 
-      {/* Lista de Animais Filtrados */}
       <FlatList
         data={animaisFiltrados}
         keyExtractor={(item, index) => index.toString()}

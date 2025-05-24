@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 export default function AnimalDetailScreen() {
   const navigation = useNavigation();
   
-  // Dados fictícios fixos
   const animal = {
     nome: "Bob",
     midia: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZG9nfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
@@ -31,7 +30,6 @@ export default function AnimalDetailScreen() {
       <View style={styles.imageContainer}>
         <Image source={{ uri: animal.midia }} style={styles.animalImage} />
         
-        {/* Ícones de navegação */}
         <TouchableOpacity 
           style={[styles.iconButton, styles.backButton]} 
           onPress={() => navigation.navigate('Home')}
