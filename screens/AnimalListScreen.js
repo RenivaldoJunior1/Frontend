@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, FlatList, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
-export default function AnimalListScreen({ route, navigation }) {
+export default function AnimalListScreen({ navigation }) {
   const [animais, setAnimais] = useState([]);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function AnimalListScreen({ route, navigation }) {
               />
             </View>
           )}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(index) => index.toString()}
         />
       ) : (
         <Text>Nenhum animal cadastrado.</Text>
