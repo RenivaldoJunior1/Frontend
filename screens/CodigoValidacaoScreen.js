@@ -15,9 +15,7 @@ export default function CodigoValidacaoScreen() {
       newCodigo[index] = text;
       setCodigo(newCodigo);
       
-      // Auto focus next input
       if (text && index < 5) {
-        // You would need to add refs to the inputs to implement this
       }
     }
   };

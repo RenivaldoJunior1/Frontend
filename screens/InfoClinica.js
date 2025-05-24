@@ -1,22 +1,17 @@
 import { StatusBar } from 'react-native';
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView } from 'react-native';
-import { Ionicons, FontAwesome, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
 import LogoNav from '../assets/LogoNav.png';
-import homeIcon from '../assets/Home.png';
-import adoptionIcon from '../assets/patinha +.png';
-import alertIcon from '../assets/Flag.png';
-import messagesIcon from '../assets/Mail.png';
-import menuIcon from '../assets/Menu.png';
 import cli1 from '../assets/cli1.png';
 import ultrassomImg from '../assets/petultrassom.png';
 import cirurgiaImg from '../assets/petcirurgia.png';
 import consultaImg from '../assets/petconsulta.png';
 import raioxImg from '../assets/petraiox.png';
+import FooterNav from '../components/FooterNav';
 
 export default function App() {
-  // Fontes personalizadas
   const [fontsLoaded] = useFonts({
     'ABeeZee': require('../assets/fonts/Chewy-Regular.ttf'),
     'Poppins': require('../assets/fonts/Poppins-Regular.ttf'),
@@ -28,7 +23,6 @@ export default function App() {
 
   return (
     <>
-      {/* Gradiente do StatusBar */}
       <LinearGradient
         colors={['#EC5475', '#9C127C']}
         start={{ x: 0, y: 0 }}
@@ -38,10 +32,8 @@ export default function App() {
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       </LinearGradient>
 
-      {/* Container principal */}
       <SafeAreaView style={styles.container} edges={['right', 'bottom', 'left']}>
-        
-        {/* Barra Superior com gradiente */}
+
         <LinearGradient
           colors={['#EC5475', '#9C127C']}
           start={{ x: 0, y: 0 }}
@@ -49,14 +41,12 @@ export default function App() {
           style={styles.topBar}
         >
           <View style={styles.topBarContent}>
-            {/* Logo */}
             <Image 
               source={LogoNav} 
               style={styles.logoNav} 
               resizeMode="contain"
             />
-            
-            {/* Barra de pesquisa */}
+
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={18} color="#F45B74" style={styles.searchIcon} />
               <TextInput 
@@ -66,8 +56,7 @@ export default function App() {
                 clearButtonMode="while-editing"
               />
             </View>
-            
-            {/* Foto de perfil */}
+
             <View style={styles.profileCircle}>
               <Image 
                 source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} 
@@ -77,26 +66,20 @@ export default function App() {
           </View>
         </LinearGradient>
 
-        {/* Conteúdo principal rolável */}
         <ScrollView style={styles.mainContent}>
-          
-          {/* Seção de informações da clínica */}
+
           <View style={styles.clinicInfo}>
-            {/* Imagem da fachada */}
             <Image 
               source={{ uri: 'https://via.placeholder.com/350x150?text=Fachada+O+BICHO' }} 
               style={styles.clinicImage}
             />
 
-            {/* Container com logo e informações */}
             <View style={styles.logoAndInfoContainer}>
-              {/* Logo da clínica */}
               <Image 
                 source={cli1} 
                 style={styles.clinicLogo}
               />
-              
-              {/* Textos informativos */}
+
               <View style={styles.infoContainer}>
                 <Text style={styles.clinicName}>O BICHO</Text>
                 <Text style={styles.clinicSubtitle}>
@@ -104,8 +87,7 @@ export default function App() {
                   Atendimento 24 horas.{"\n"}
                   Emergências e Consultas.
                 </Text>
-                
-                {/* Avaliação por estrelas */}
+
                 <View style={styles.ratingContainer}>
                   {[1, 2, 3, 4, 5].map((item) => (
                     <FontAwesome 
@@ -121,10 +103,8 @@ export default function App() {
             </View>
           </View>
 
-          {/* Seção de serviços */}
           <Text style={styles.sectionTitle}>SERVIÇOS</Text>
-          
-          {/* Grid de serviços */}
+
           <View style={styles.servicesContainer}>
             {[
               {name: 'ULTRASSOM', image: ultrassomImg, desc: 'Ultrassom anual e preventiva'},
@@ -133,71 +113,37 @@ export default function App() {
               {name: 'RAIO-X', image: raioxImg, desc: 'Raio-x específicos'}
             ].map((service, index) => (
               <View key={index} style={styles.serviceCard}>
-                {/* Container da imagem do serviço */}
                 <View style={styles.serviceImageContainer}>
                   <Image 
                     source={service.image} 
                     style={styles.serviceImage}
                   />
                 </View>
-                
-                {/* Nome e descrição do serviço */}
+
                 <Text style={styles.serviceName}>{service.name}</Text>
                 <Text style={styles.serviceDescriptionText}>{service.desc}</Text>
-                
-                {/* Footer decorativo */}
+
                 <View style={styles.cardFooter}></View>
               </View>
             ))}
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
-        <View style={styles.footerItem}>
-          <Image source={homeIcon} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Início</Text>
-        </View>
-        
-        <View style={styles.footerItem}>
-          <Image source={adoptionIcon} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Adoção</Text>
-        </View>
-        
-        <View style={styles.footerItem}>
-          <Image source={alertIcon} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </View>
-        
-        <View style={styles.footerItem}>
-          <Image source={messagesIcon} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
-        </View>
-        
-        <View style={styles.footerItem}>
-          <Image source={menuIcon} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Menu</Text>
-        </View>
-      </View>
+        <FooterNav />
       </SafeAreaView>
     </>
   );
 }
 
-// Estilos da aplicação
 const styles = StyleSheet.create({
-  // Container principal
   container: {
     flex: 1,
     backgroundColor: '#f9efdb',
   },
-  
-  // Gradiente da StatusBar
   statusBarGradient: {
     height: StatusBar.currentHeight,
     backgroundColor: 'transparent',
   },
-
-  // Barra Superior
   topBar: {
     backgroundColor: '#ff8a98',
     paddingVertical: 10,
@@ -211,18 +157,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  
-  // Conteúdo da barra superior
   topBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  
-  // Barra de pesquisa
   searchContainer: {
     height: '78%',
-    width:'70%',
+    width: '70%',
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
@@ -230,13 +172,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 10,
   },
-  
-  // Ícone de pesquisa
   searchIcon: {
     marginRight: 8,
   },
-  
-  // Input de pesquisa
   searchInput: {
     flex: 1,
     fontSize: 16,
@@ -245,8 +183,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minHeight: 50,
   },
-  
-  // Círculo do perfil
   profileCircle: {
     width: 40,
     height: 40,
@@ -258,42 +194,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
-  
-  // Imagem do perfil
   profileImage: {
     width: 36,
     height: 36,
     borderRadius: 18,
   },
-
-  // Container principal de conteúdo
   mainContent: {
     flex: 1,
     padding: 15,
   },
-  
-  // Seção de informações da clínica
   clinicInfo: {
     marginBottom: 10,
     marginTop: -170,
   },
-  
-  // Imagem da clínica
   clinicImage: {
     width: '100%',
     height: 180,
     borderRadius: 15,
     marginBottom: 15,
   },
-  
-  // Container para logo e informações
   logoAndInfoContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: 10,
   },
-  
-  // Logo da clínica
   clinicLogo: {
     width: 170,
     height: 170,
@@ -301,15 +225,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginBottom: 20,
   },
-  
-  // Container de informações textuais
   infoContainer: {
     flex: 1,
     marginLeft: 10,
     marginTop: -15,
   },
-  
-  // Nome da clínica
   clinicName: {
     fontSize: 30,
     fontFamily: 'ABeeZee',
@@ -319,8 +239,6 @@ const styles = StyleSheet.create({
     marginTop: -10,
     textTransform: 'uppercase',
   },
-  
-  // Subtítulo da clínica
   clinicSubtitle: {
     fontSize: 14,
     fontFamily: 'Poppins',
@@ -330,14 +248,10 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 10,
   },
-  
-  // Container de avaliação
   ratingContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
   },
-  
-  // Título da seção de serviços
   sectionTitle: {
     fontSize: 28,
     fontFamily: 'ABeeZee',
@@ -346,8 +260,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textTransform: 'uppercase',
   },
-  
-  // Container dos serviços
   servicesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -355,8 +267,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
-  
-  // Card de serviço individual
   serviceCard: {
     width: '48%',
     backgroundColor: '#E7E3F9',
@@ -370,8 +280,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     overflow: 'hidden',
   },
-  
-  // Container da imagem do serviço
   serviceImageContainer: {
     alignItems: 'center',
     marginBottom: 10,
@@ -380,15 +288,11 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: -25,
   },
-  
-  // Imagem do serviço
   serviceImage: {
     width: 170,
     height: 150,
     borderRadius: 80,
   },
-  
-  // Nome do serviço
   serviceName: {
     fontSize: 18,
     fontFamily: 'ABeeZee',
@@ -400,8 +304,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     width: '100%',
   },
-  
-  // Descrição do serviço
   serviceDescriptionText: {
     fontSize: 12,
     fontFamily: 'Poppins',
@@ -411,8 +313,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     width: '100%',
   },
-  
-  // Footer decorativo do card
   cardFooter: {
     position: 'absolute',
     bottom: 0,
@@ -421,8 +321,6 @@ const styles = StyleSheet.create({
     height: 10,
     backgroundColor: '#e6e6fa',
   },
-  
-  // Rodapé da aplicação
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -430,28 +328,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#F45B74',
     marginBottom: 3,
     paddingVertical: 12,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
+    borderRadius: 15,
     marginHorizontal: 5,
   },
-
-  // Ícones no rodapé
+  footerItem: {
+    alignItems: 'center',
+  },
   footerIcon: {
     width: 26,
     height: 26,
     resizeMode: 'contain',
-    tintColor: '#F9EFDB', // Remove se quiser manter as cores originais das imagens
-    marginBottom: 4, // Espaço entre ícone e texto
+    tintColor: '#F9EFDB',
+    marginBottom: 4,
   },
-  
-  // Item do rodapé
-  footerItem: {
-    alignItems: 'center',
-  },
-  
-  // Texto do rodapé
   footerText: {
     color: 'white',
     fontSize: 12,
