@@ -14,14 +14,10 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-import IconHome from "../assets/Home.png";
-import IconAdocao from "../assets/patinha +.png";
-import IconAlerta from "../assets/Flag.png";
-import IconMail from "../assets/Mail.png";
-import IconMenu from "../assets/Menu.png";
-
 import PataIcon from "../assets/patinha.png";
 import LogoNav from "../assets/LogoNav.png";
+
+import FooterNav from "../components/FooterNav";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 40 - 15) / 2;
@@ -89,7 +85,7 @@ const OngsScreen = () => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, { width: cardWidth }]}
-      onPress={() => navigation.navigate("OngDetail", { ong: item })}
+      onPress={() => navigation.navigate("InfoOng", { ong: item })}
     >
       <Image source={item.imagem} style={styles.cardImage} />
 
@@ -125,7 +121,6 @@ const OngsScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Cabeçalho */}
         <LinearGradient
           colors={["#EC5475", "#9C127C"]}
           start={{ x: 0, y: 0 }}
@@ -151,7 +146,6 @@ const OngsScreen = () => {
           />
         </LinearGradient>
 
-        {/* Ícone ONG */}
         <View style={styles.iconContainer}>
           <View style={styles.circle}>
             <Image source={PataIcon} style={styles.iconImage} />
@@ -159,7 +153,6 @@ const OngsScreen = () => {
           <Text style={styles.iconLabel}>ONGs</Text>
         </View>
 
-        {/* Lista de ONGs */}
         <FlatList
           data={ongsData}
           renderItem={renderItem}
@@ -174,50 +167,7 @@ const OngsScreen = () => {
             </View>
           }
         />
-
-        {/* Barra de Navegação Inferior */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            style={styles.bottomItem}
-            onPress={() => navigation.navigate("Home")}
-          >
-            <Image source={IconHome} style={styles.bottomIcon} />
-            <Text style={styles.bottomLabel}>Início</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.bottomItem}
-            onPress={() => navigation.navigate("Adocao")}
-          >
-            <Image source={IconAdocao} style={styles.bottomIcon} />
-            <Text style={styles.bottomLabel}>Adoção</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.bottomItem}
-            onPress={() => navigation.navigate("Alerta")}
-          >
-            <Image source={IconAlerta} style={styles.bottomIcon} />
-            <Text style={styles.bottomLabel}>Alerta!</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.bottomItem}
-            onPress={() => navigation.navigate("Mensagens")}
-          >
-            <View style={styles.iconRow}>
-              <Image source={IconMail} style={styles.bottomIcon} />
-            </View>
-            <Text style={styles.bottomLabel}>Mensagens</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.bottomItem}
-            onPress={() => navigation.navigate("Menu")}
-          >
-            <Image source={IconMenu} style={styles.bottomIcon} />
-            <Text style={styles.bottomLabel}>Menu</Text>
-          </TouchableOpacity>
-        </View>
+        <FooterNav />
       </View>
     </SafeAreaView>
   );
@@ -318,7 +268,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 10,
-    paddingBottom: 80, // espaço extra para a barra inferior
+    paddingBottom: 80,
   },
   columnWrapper: {
     justifyContent: "space-between",

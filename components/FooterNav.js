@@ -7,25 +7,21 @@ const FooterNav = () => {
 
   return (
     <View style={styles.footer}>
-      {/* Botão "Início" */}
       <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
         <Image source={require("../assets/Home.png")} style={styles.footerIcon} />
         <Text style={styles.footerText}>Início</Text>
       </TouchableOpacity>
 
-      {/* Botão "Adoção" */}
       <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Adocao")}>
         <Image source={require("../assets/patinha +.png")} style={styles.footerIcon} />
         <Text style={styles.footerText}>Adoção</Text>
       </TouchableOpacity>
 
-      {/* Botão "Notificações" */}
       <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Notificacoes")}>
         <Image source={require("../assets/NavNotificação.png")} style={styles.footerIcon} />
         <Text style={styles.footerText}>Notificações!</Text>
       </TouchableOpacity>
 
-      {/* Botão "Menu" */}
       <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Menu")}>
         <Image source={require("../assets/Menu.png")} style={styles.footerIcon} />
         <Text style={styles.footerText}>Menu</Text>
@@ -34,7 +30,6 @@ const FooterNav = () => {
   );
 };
 
-// Estilos comentados
 const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",

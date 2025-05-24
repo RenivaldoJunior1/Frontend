@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, ScrollView, SafeAreaView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, SafeAreaView, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { AntDesign } from "@expo/vector-icons"; // IMPORTAÇÃO FALTANDO
-import { useNavigation } from "@react-navigation/native";
+import { AntDesign } from "@expo/vector-icons";
+import FooterNav from "../components/FooterNav";
 
 const { width } = Dimensions.get("window");
 
@@ -39,7 +39,6 @@ export default function CuidadosScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-{/* Header */}
    <LinearGradient
       colors={["#E13E79", "#9C27B0"]}
       start={{ x: 0, y: 0 }}
@@ -61,7 +60,6 @@ export default function CuidadosScreen() {
       <Image source={require("../assets/profile.png")} style={styles.avatar} />
    </TouchableOpacity>
    </LinearGradient>
-{/*  */}
 
       <Text style={styles.titulo}>Como cuidar do seu pet</Text>
       {cuidados.map((item, index) => (
@@ -76,29 +74,7 @@ export default function CuidadosScreen() {
         </View>
       ))}
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Home.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Início</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Adocao")}>
-          <Image source={require("../assets/patinha +.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Adoção</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Flag.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Mail.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Menu")}>
-          <Image source={require("../assets/Menu.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Menu</Text>
-        </TouchableOpacity>
-      </View>
+      <FooterNav />
     </SafeAreaView>
   );
 }
@@ -174,7 +150,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
- // FOOTER
  footer: {
    flexDirection: "row",
    justifyContent: "space-around",
@@ -201,5 +176,3 @@ const styles = StyleSheet.create({
  },
 
 });
-
-

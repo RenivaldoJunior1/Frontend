@@ -7,24 +7,15 @@ import {
   ImageBackground,
   Dimensions,
   SafeAreaView,
-  TouchableOpacity,
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
-import { useNavigation } from "@react-navigation/native";
 
-// Imagens
 import Pipoca from "../assets/pet1.webp";
 import Max from "../assets/cachorro.jpeg";
 import Luna from "../assets/pet1.webp";
 import Thor from "../assets/cachorro.jpeg";
 import Nina from "../assets/cachorro.jpeg";
 import HomeCardBackground from "../assets/HomeCardPet.png";
-import IconHome from "../assets/Home.png";
-import IconAdocao from "../assets/patinha +.png";
-import IconAlerta from "../assets/Flag.png";
-import IconMensagens from "../assets/Mail.png";
-import IconMenu from "../assets/Menu.png";
-import homeBack from "../assets/HomeCardPet.png";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 40 - 15) / 2;
@@ -38,7 +29,6 @@ const petsData = [
 ];
 
 const CarrosselPets = () => {
-  const navigation = useNavigation();
 
   const renderItem = ({ item }) => (
     <ImageBackground
@@ -62,7 +52,7 @@ const CarrosselPets = () => {
           autoPlay={true}
           data={petsData}
           scrollAnimationDuration={1000}
-          renderItem={renderItem} // Passa diretamente a função renderItem aqui
+          renderItem={renderItem}
         />
       </View>
     </SafeAreaView>

@@ -49,7 +49,6 @@ const CarrosselDicas = () => {
         )}
       />
 
-      {/* Indicadores animados com base no currentIndex */}
       <View style={styles.indicadores}>
         {dicas.map((_, index) => {
           const animatedStyle = useAnimatedStyle(() => {

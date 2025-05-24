@@ -3,8 +3,7 @@ import { View,Text, StyleSheet, TextInput, Image, TouchableOpacity, ScrollView, 
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
-const { width } = Dimensions.get("window");
+import FooterNav from "../components/FooterNav";
 
 const DicasScreen = () => {
   const [activeTab, setActiveTab] = useState("Felinos");
@@ -29,7 +28,6 @@ const DicasScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <LinearGradient
       colors={["#E13E79", "#9C27B0"]}
       start={{ x: 0, y: 0 }}
@@ -53,8 +51,6 @@ const DicasScreen = () => {
    </TouchableOpacity>
    </LinearGradient>
 
-
-      {/* Conteúdo */}
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>Dicas</Text>
         <Image
@@ -93,29 +89,7 @@ const DicasScreen = () => {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Home.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Início</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Adocao")}>
-          <Image source={require("../assets/patinha +.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Adoção</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Flag.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Alerta!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Home")}>
-          <Image source={require("../assets/Mail.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Mensagens</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate("Menu")}>
-          <Image source={require("../assets/Menu.png")} style={styles.footerIcon} />
-          <Text style={styles.footerText}>Menu</Text>
-        </TouchableOpacity>
-      </View>
+      <FooterNav />
     </SafeAreaView>
   );
 };
@@ -124,7 +98,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFF7EE" },
   scroll: { paddingBottom: 100, paddingHorizontal: 16 },
 
-  // HEADER
   headerGradient: {
     flexDirection: "row",
     alignItems: "center",
@@ -154,7 +127,6 @@ const styles = StyleSheet.create({
   },
   avatar: { width: 36, height: 36, borderRadius: 18 },
 
-  // CONTEÚDO
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -178,7 +150,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     marginBottom: 12,
   },
-
 
   tab: {
     paddingVertical: 8,
@@ -222,7 +193,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  // FOOTER
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
