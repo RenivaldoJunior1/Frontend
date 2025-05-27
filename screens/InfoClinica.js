@@ -3,26 +3,23 @@ import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView, Tou
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
-import { useRoute } from '@react-navigation/native'; // Importe useRoute
+import { useRoute } from '@react-navigation/native';
 
 import LogoNav from '../assets/LogoNav.png';
-// Removi o import de cli1 pois usaremos clinica.imagem
-// import cli1 from '../assets/cli1.png'; 
 import ultrassomImg from '../assets/petultrassom.png';
 import cirurgiaImg from '../assets/petcirurgia.png';
 import consultaImg from '../assets/petconsulta.png';
 import raioxImg from '../assets/petraiox.png';
 import FooterNav from '../components/FooterNav';
 
-// Renomeei o componente para InfoClinica
-export default function InfoClinica() { 
+export default function InfoClinica() {
   const [fontsLoaded] = useFonts({
     'ABeeZee': require('../assets/fonts/Chewy-Regular.ttf'),
     'Poppins': require('../assets/fonts/Poppins-Regular.ttf'),
   });
 
-  const route = useRoute(); // Use o hook useRoute para acessar os parâmetros
-  const { clinica } = route.params; // Extraia o objeto 'clinica' dos parâmetros
+  const route = useRoute();
+  const { clinica } = route.params;
 
   if (!fontsLoaded) {
     return null;
@@ -39,7 +36,7 @@ export default function InfoClinica() {
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       </LinearGradient>
 
-      <SafeAreaView style={styles.container} edges={['right', 'bottom', 'left']}>
+      <SafeAreaView style={styles.container}>
 
         <LinearGradient
           colors={['#EC5475', '#9C127C']}
@@ -48,16 +45,16 @@ export default function InfoClinica() {
           style={styles.topBar}
         >
           <View style={styles.topBarContent}>
-            <Image 
-              source={LogoNav} 
-              style={styles.logoNav} 
+            <Image
+              source={LogoNav}
+              style={styles.logoNav}
               resizeMode="contain"
             />
 
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={18} color="#F45B74" style={styles.searchIcon} />
-              <TextInput 
-                placeholder="Pesquisar" 
+              <TextInput
+                placeholder="Pesquisar"
                 placeholderTextColor="#F45B74"
                 style={styles.searchInput}
                 clearButtonMode="while-editing"
@@ -65,48 +62,48 @@ export default function InfoClinica() {
             </View>
 
             <View style={styles.profileCircle}>
-              <Image 
-                source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} 
+              <Image
+                source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
                 style={styles.profileImage}
               />
             </View>
           </View>
         </LinearGradient>
 
-        <ScrollView style={styles.mainContent}>
+        <ScrollView 
+          style={styles.mainContent}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
 
           <View style={styles.clinicInfo}>
-            <View 
-              style={styles.clinicImage}
-            />
-
+            
             <View style={styles.logoAndInfoContainer}>
-              <Image 
-                source={clinica.imagem} // Pode ser a mesma imagem ou uma logo específica se tiver
+              <Image
+                source={clinica.imagem}
                 style={styles.clinicLogo}
               />
 
               <View style={styles.infoContainer}>
-                <Text style={styles.clinicName}>{clinica.nome}</Text> {/* Exibindo o nome da clínica */}
+                <Text style={styles.clinicName}>{clinica.nome}</Text>
                 <Text style={styles.clinicSubtitle}>
-                  {clinica.localizacao}.{"\n"} {/* Exibindo a localização */}
+                  {clinica.localizacao}.{"\n"}
                   Atendimento 24 horas.{"\n"}
                   Emergências e Consultas.
                 </Text>
 
                 <View style={styles.ratingContainer}>
-                  {/* Renderizando as estrelas com base no rating da clínica */}
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <FontAwesome 
-                      key={star} 
-                      name={star <= Math.round(clinica.rating) ? "star" : "star-o"} 
-                      size={20} 
-                      color={star <= Math.round(clinica.rating) ? "#FF5252" : "#888"} 
+                    <FontAwesome
+                      key={star}
+                      name={star <= Math.round(clinica.rating) ? "star" : "star-o"}
+                      size={20}
+                      color={star <= Math.round(clinica.rating) ? "#FF5252" : "#888"}
                       style={styles.starIcon}
                     />
                   ))}
                 </View>
-              </View> 
+              </View>
             </View>
           </View>
 
@@ -121,14 +118,16 @@ export default function InfoClinica() {
             ].map((service, index) => (
               <View key={index} style={styles.serviceCard}>
                 <View style={styles.serviceImageContainer}>
-                  <Image 
-                    source={service.image} 
+                  <Image
+                    source={service.image}
                     style={styles.serviceImage}
                   />
                 </View>
 
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.serviceDescriptionText}>{service.desc}</Text>
+                <View style={styles.serviceContent}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={styles.serviceDescriptionText}>{service.desc}</Text>
+                </View>
 
                 <View style={styles.cardFooter}></View>
               </View>
@@ -163,6 +162,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    zIndex: 1000, // Garante que o header fique por cima
   },
   topBarContent: {
     flexDirection: 'row',
@@ -208,52 +208,46 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+  },
+  scrollContentContainer: {
     padding: 15,
+    paddingTop: 25, // Espaço adicional do header
+    paddingBottom: 100, // Espaço para o footer
   },
   clinicInfo: {
-    marginBottom: 10,
-    marginTop: -170, // Ajuste esse valor conforme necessário para o layout
-  },
-  clinicImage: {
-    width: '100%',
-    height: 180,
-    borderRadius: 15,
-    marginBottom: 15,
+    marginBottom: 25,
+    marginTop: 10,
   },
   logoAndInfoContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 10,
+    marginTop: 0, // Removido margin negativo
   },
   clinicLogo: {
-    width: 170,
-    height: 170,
-    marginTop: -35,
-    borderRadius: 18,
-    marginBottom: 20,
+    width: 120,
+    height: 120,
+    borderRadius: 15,
+    marginRight: 15,
   },
   infoContainer: {
     flex: 1,
-    marginLeft: 10,
-    marginTop: -15,
+    paddingTop: 5,
   },
   clinicName: {
-    fontSize: 30,
+    fontSize: 24,
     fontFamily: 'ABeeZee',
     color: '#3C55D3',
-    marginLeft: 15,
     marginBottom: 8,
-    marginTop: -10,
     textTransform: 'uppercase',
+    lineHeight: 28,
   },
   clinicSubtitle: {
     fontSize: 14,
     fontFamily: 'Poppins',
     color: '#666',
     textAlign: 'left',
-    lineHeight: 18,
-    marginTop: 5,
-    marginBottom: 10,
+    lineHeight: 20,
+    marginBottom: 15,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -267,7 +261,8 @@ const styles = StyleSheet.create({
     fontFamily: 'ABeeZee',
     color: '#3C55D3',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
+    marginTop: 15,
     textTransform: 'uppercase',
   },
   servicesContainer: {
@@ -275,13 +270,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 20,
-    marginTop: 10,
   },
   serviceCard: {
     width: '48%',
     backgroundColor: '#E7E3F9',
     borderRadius: 15,
-    padding: 15,
     marginBottom: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -289,46 +282,42 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     overflow: 'hidden',
+    minHeight: 220, // Altura mínima para consistência
   },
   serviceImageContainer: {
     alignItems: 'center',
-    marginBottom: 10,
     backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    margin: -25,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingVertical: 20,
+    paddingHorizontal: 15,
   },
   serviceImage: {
-    width: 170,
-    height: 150,
+    width: 140,
+    height: 140,
     borderRadius: 80,
   },
+  serviceContent: {
+    padding: 15,
+    flex: 1,
+  },
   serviceName: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'ABeeZee',
     fontWeight: '600',
     color: '#458ADA',
     textAlign: 'left',
-    marginBottom: 5,
-    marginTop: 10,
-    alignSelf: 'flex-start',
-    width: '100%',
+    marginBottom: 8,
   },
   serviceDescriptionText: {
     fontSize: 12,
     fontFamily: 'Poppins',
     color: '#666',
     textAlign: 'left',
-    marginBottom: 5,
-    alignSelf: 'flex-start',
-    width: '100%',
+    lineHeight: 16,
   },
   cardFooter: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 10,
+    height: 8,
     backgroundColor: '#e6e6fa',
   },
   footer: {
