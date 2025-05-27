@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
-  TextInput,
   Image,
   TouchableOpacity,
   Text,
@@ -11,8 +10,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import styled from 'styled-components/native';
-import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+
+import SearchBar from '../components/SearchBar';
+import SearchResultsList from '../components/SearchResultsList';
 import CarrosselDicas from '../components/CarrosselDicas';
 import CarrosselPets from '../components/CarrosselPets';
 import FooterNav from '../components/FooterNav';
@@ -33,105 +34,173 @@ export const HeaderContainer = styled(LinearGradient).attrs({
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [filters, setFilters] = useState({
-    city: '',
-    category: 'Todos'
-  });
+  const [searchText, setSearchText] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [filters, setFilters] = useState({ city: '', category: 'Todos' });
+
+  const safeResponseToJson = (response) => {
+    const clone = response.clone();
+    return new Promise((resolve, reject) => {
+      response.json()
+        .then(resolve)
+        .catch(() => {
+          clone.text()
+            .then(text => {
+              console.log("Resposta não era JSON, corpo recebido:", text);
+              resolve({});
+            })
+            .catch(reject);
+        });
+    });
+  };
+
+  const performSearch = async (query) => {
+    const lowercasedQuery = query.toLowerCase();
+
+    if (!lowercasedQuery) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+        const url = `https://pethopeapi.onrender.com/api/users?q=${lowercasedQuery}`;
+        console.log("Buscando na URL:", url);
+        
+        const response = await fetch(url).then(safeResponseToJson);
+
+        let apiResults = [];
+        if (Array.isArray(response?.data)) {
+            apiResults = response.data;
+        }
+
+        const specificResults = apiResults.filter(item => {
+            const nomePrincipal = (item.razaoSocial || item.responsavelNome || '').toLowerCase();
+            return nomePrincipal.startsWith(lowercasedQuery);
+        });
+
+        console.log(`API retornou ${apiResults.length} itens. Após filtro de especificidade, restaram ${specificResults.length}.`);
+
+        const finalResults = specificResults.map(item => ({
+            ...item,
+            resultType: item.tipo 
+        }));
+        setSearchResults(finalResults);
+
+    } catch (error) {
+        console.error("Erro ao realizar a busca:", error);
+        setSearchResults([]);
+    } finally {
+        setIsSearching(false);
+    }
+  };  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      performSearch(searchText);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchText]);
 
   const handleApplyFilters = (newFilters) => {
     setFilters(newFilters);
     setModalVisible(false);
-    console.log('Filtros aplicados:', newFilters);
   };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchResults([]);
+  }
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       <HeaderContainer>
-        <Image 
-          source={require('../assets/PataHome.png')} 
-          style={styles.logo} 
+        <Image source={require('../assets/PataHome.png')} style={styles.logo} />
+        <SearchBar 
+          searchText={searchText}
+          onSearchTextChange={setSearchText}
+          onFilterPress={() => setModalVisible(true)}
         />
-        <View style={styles.searchContainer}>
-          <FontAwesome name="search" size={20} color="#E13E79" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Pesquisar"
-            placeholderTextColor="#E13E79"
-          />
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Ionicons name="options-outline" size={20} color="#E13E79" />
-          </TouchableOpacity>
-        </View>
         <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
-          <Image 
-            source={require('../assets/profile.png')} 
-            style={styles.profileImage} 
-          />
+          <Image source={require('../assets/profile.png')} style={styles.profileImage} />
         </TouchableOpacity>
       </HeaderContainer>
 
       <Filtro
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onApply={handleApplyFilters}
+        onClose={() => {
+            setModalVisible(false);
+            clearSearch();
+        }}
+        onApply={(filters) => {
+            handleApplyFilters(filters);
+            clearSearch();
+        }}
       />
+      
+      {searchText.length > 0 ? (
+        <SearchResultsList results={searchResults} isLoading={isSearching} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.title}>O que você procura?</Text>
+            <View style={styles.box}>
+                <View style={styles.row}>
+                    <TouchableOpacity 
+                        style={styles.iconContainer}
+                        onPress={() => navigation.navigate('OngsScreen')}
+                    >
+                        <Image 
+                        source={require('../assets/ong.png')} 
+                        style={styles.iconImage} 
+                        />
+                        <Text style={styles.iconText}>ONGs</Text>
+                    </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>O que você procura?</Text>
-        <View style={styles.box}>
-          <View style={styles.row}>
-            <TouchableOpacity 
-              style={styles.iconContainer}
-              onPress={() => navigation.navigate('OngScreen')}
-            >
-              <Image 
-                source={require('../assets/ong.png')} 
-                style={styles.iconImage} 
-              />
-              <Text style={styles.iconText}>ONGs</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.iconContainer}
+                        onPress={() => navigation.navigate('Cuidados')}
+                    >
+                        <Image 
+                        source={require('../assets/CUIDADOS_home.png')} 
+                        style={styles.iconImage} 
+                        />
+                        <Text style={styles.iconText}>Cuidados</Text>
+                    </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.iconContainer}
-              onPress={() => navigation.navigate('Cuidados')}
-            >
-              <Image 
-                source={require('../assets/CUIDADOS_home.png')} 
-                style={styles.iconImage} 
-              />
-              <Text style={styles.iconText}>Cuidados</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.iconContainer}
+                        onPress={() => navigation.navigate('Dicas')}
+                    >
+                        <Image 
+                        source={require('../assets/Dicas_home.png')} 
+                        style={styles.iconImage} 
+                        />
+                        <Text style={styles.iconText}>Dicas</Text>
+                    </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.iconContainer}
-              onPress={() => navigation.navigate('Dicas')}
-            >
-              <Image 
-                source={require('../assets/Dicas_home.png')} 
-                style={styles.iconImage} 
-              />
-              <Text style={styles.iconText}>Dicas</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={styles.iconContainer}
+                        onPress={() => navigation.navigate('ClinicaScreen')}
+                    >
+                        <Image 
+                        source={require('../assets/clinicas.png')} 
+                        style={styles.iconImage} 
+                        />
+                        <Text style={styles.iconText}>Clínicas</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
 
-            <TouchableOpacity 
-              style={styles.iconContainer}
-              onPress={() => navigation.navigate('ClinicaScreen')}
-            >
-              <Image 
-                source={require('../assets/clinicas.png')} 
-                style={styles.iconImage} 
-              />
-              <Text style={styles.iconText}>Clínicas</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            <Text style={styles.title}>Conheça Nossos Pets</Text>
+            <CarrosselPets filters={filters} />
 
-        <Text style={styles.title}>Conheça Nossos Pets</Text>
-        <CarrosselPets filters={filters} />
-
-        <Text style={styles.title}>Dicas e Cuidados</Text>
-        <CarrosselDicas />
-      </ScrollView>
+            <Text style={styles.title}>Dicas e Cuidados</Text>
+            <CarrosselDicas />
+        </ScrollView>
+      )}
 
       <FooterNav />
     </SafeAreaView>
@@ -147,21 +216,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     marginRight: 10,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 5,
-    fontSize: 16,
-    color: '#E13E79',
   },
   profileImage: {
     width: 40,
