@@ -31,7 +31,7 @@ const Stack = createStackNavigator();
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login"component={LoginScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="AnimalList" component={AnimalListScreen} />
@@ -50,7 +50,7 @@ export default function AppNavigator() {
         <Stack.Screen name="CodigoValidacao" component={CodigoValidacaoScreen}/>
         <Stack.Screen name="InfoClinica" component={InfoClinica}/>
         <Stack.Screen name="Adocao" component={AdocaoScreen}/>
-        <Stack.Screen name="OngScreen" component={OngsScreen}/>
+        <Stack.Screen name="OngsScreen" component={OngsScreen}/>
         <Stack.Screen name="ClinicaScreen" component={ClinicaScreen}/>
         <Stack.Screen name="Notificacoes" component={NotificacoesScreen}/>
         <Stack.Screen name="InfoOng" component={InfoONG}/>
