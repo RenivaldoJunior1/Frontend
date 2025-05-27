@@ -14,71 +14,74 @@ export default function LoginScreen() {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    // Validação de campos vazios
-    if (!email.trim() || !senha.trim()) {
+    const userEmail = email.trim();
+    const userPassword = senha.trim();
+
+    if (!userEmail || !userPassword) {
       Alert.alert('Atenção', 'Preencha todos os campos!');
       return;
     }
   
+    setLoading(true);
     try {
-      setLoading(true);
-
-      const response = await fetch('https://pethopeapi.onrender.com/api/users/login', {
+      const loginResponse = await fetch('https://pethopeapi.onrender.com/api/users/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: senha.trim()
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail, password: userPassword }),
       });
 
-      const responseData = await response.json();
+      const loginData = await loginResponse.json();
 
-      console.log("Resposta do servidor:", responseData);
-
-      if (!response.ok) {
-        Alert.alert('Erro', responseData.message || 'Erro ao fazer login');
+      if (!loginResponse.ok || !loginData.data || !loginData.data.token) {
+        Alert.alert('Erro', loginData.message || 'Credenciais inválidas.');
+        setLoading(false);
         return;
       }
 
-      // Login bem-sucedido
-      if (responseData.data && responseData.data.token) {
-        await AsyncStorage.setItem('userToken', responseData.data.token);
-       
-        const userInfoResponse = await fetch('https://pethopeapi.onrender.com/api/users/profile', {
+      const { token } = loginData.data;
+      await AsyncStorage.setItem('userToken', token);
+      console.log("Token recebido e salvo com sucesso.");
+
+      const usersResponse = await fetch('https://pethopeapi.onrender.com/api/users', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${responseData.data.token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        });
-        
-        const userInfo = await userInfoResponse.json();
-        
-        console.log("Dados do usuário:", userInfo);
-        
-        if (userInfoResponse.ok && userInfo.data) {
-          await AsyncStorage.setItem('usuarioAtual', JSON.stringify(userInfo.data));
+      });
 
-          const tipoCadastro = userInfo.data.role || 'default';
-          await AsyncStorage.setItem('tipoCadastro', tipoCadastro);
-          
-          Alert.alert('Sucesso', 'Login realizado com sucesso!');
-          navigation.navigate('Home', { tipoCadastro });
-        } else {
-          Alert.alert('Sucesso', 'Login realizado!');
-          navigation.navigate('Home');
-        }
-      } else {
-        Alert.alert('Erro', 'Token não encontrado na resposta.');
+      if (!usersResponse.ok) {
+        throw new Error('Não foi possível buscar os dados do usuário.');
       }
+      
+      const allUsersResponse = await usersResponse.json(); 
+      
+      console.log("Estrutura COMPLETA da resposta de /users:", JSON.stringify(allUsersResponse, null, 2));
+
+      const userList = allUsersResponse.data; 
+
+      if (!Array.isArray(userList)) {
+        throw new Error("A resposta da API para a lista de usuários não é um array válido.");
+      }
+      
+      const currentUser = userList.find(user => user.email === userEmail);
+      
+      if (!currentUser) {
+        throw new Error('Usuário autenticado, mas não encontrado na lista de dados.');
+      }
+
+      console.log("Dados do usuário encontrados:", currentUser);
+
+      await AsyncStorage.setItem('usuarioAtual', JSON.stringify(currentUser));
+      const tipoCadastro = currentUser.tipo || 'default';
+      await AsyncStorage.setItem('tipoCadastro', tipoCadastro);
+
+      Alert.alert('Sucesso', 'Login realizado com sucesso!');
+      navigation.navigate('Home', { tipoCadastro });
+
     } catch (error) {
-      console.error("Erro no login:", error);
-      setTimeout(() => {
-        Alert.alert('Erro', error.message || 'Não foi possível fazer login. Verifique suas credenciais.');
-      }, 0);
+      console.error("Erro no processo de login:", error);
+      Alert.alert('Erro', error.message || 'Não foi possível fazer login. Verifique sua conexão.');
     } finally {
       setLoading(false);
     }
