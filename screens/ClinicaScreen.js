@@ -61,7 +61,8 @@ const ClinicaScreen = () => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, { width: cardWidth }]}
-      onPress={() => navigation.navigate("ClinicaDetail", { clinica: item })}
+      // Redireciona para 'InfoClinica' e passa o objeto 'item' como 'clinica'
+      onPress={() => navigation.navigate("InfoClinica", { clinica: item })} 
     >
       <Image source={item.imagem} style={styles.cardImage} />
 

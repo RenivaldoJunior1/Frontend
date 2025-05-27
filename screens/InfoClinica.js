@@ -3,19 +3,26 @@ import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView, Tou
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
+import { useRoute } from '@react-navigation/native'; // Importe useRoute
+
 import LogoNav from '../assets/LogoNav.png';
-import cli1 from '../assets/cli1.png';
+// Removi o import de cli1 pois usaremos clinica.imagem
+// import cli1 from '../assets/cli1.png'; 
 import ultrassomImg from '../assets/petultrassom.png';
 import cirurgiaImg from '../assets/petcirurgia.png';
 import consultaImg from '../assets/petconsulta.png';
 import raioxImg from '../assets/petraiox.png';
 import FooterNav from '../components/FooterNav';
 
-export default function App() {
+// Renomeei o componente para InfoClinica
+export default function InfoClinica() { 
   const [fontsLoaded] = useFonts({
     'ABeeZee': require('../assets/fonts/Chewy-Regular.ttf'),
     'Poppins': require('../assets/fonts/Poppins-Regular.ttf'),
   });
+
+  const route = useRoute(); // Use o hook useRoute para acessar os parâmetros
+  const { clinica } = route.params; // Extraia o objeto 'clinica' dos parâmetros
 
   if (!fontsLoaded) {
     return null;
@@ -69,32 +76,32 @@ export default function App() {
         <ScrollView style={styles.mainContent}>
 
           <View style={styles.clinicInfo}>
-            <Image 
-              source={{ uri: 'https://via.placeholder.com/350x150?text=Fachada+O+BICHO' }} 
+            <View 
               style={styles.clinicImage}
             />
 
             <View style={styles.logoAndInfoContainer}>
               <Image 
-                source={cli1} 
+                source={clinica.imagem} // Pode ser a mesma imagem ou uma logo específica se tiver
                 style={styles.clinicLogo}
               />
 
               <View style={styles.infoContainer}>
-                <Text style={styles.clinicName}>O BICHO</Text>
+                <Text style={styles.clinicName}>{clinica.nome}</Text> {/* Exibindo o nome da clínica */}
                 <Text style={styles.clinicSubtitle}>
-                  Clínica Veterinária.{"\n"}
+                  {clinica.localizacao}.{"\n"} {/* Exibindo a localização */}
                   Atendimento 24 horas.{"\n"}
                   Emergências e Consultas.
                 </Text>
 
                 <View style={styles.ratingContainer}>
-                  {[1, 2, 3, 4, 5].map((item) => (
+                  {/* Renderizando as estrelas com base no rating da clínica */}
+                  {[1, 2, 3, 4, 5].map((star) => (
                     <FontAwesome 
-                      key={item} 
-                      name={item <= 4 ? "star" : "star-o"} 
+                      key={star} 
+                      name={star <= Math.round(clinica.rating) ? "star" : "star-o"} 
                       size={20} 
-                      color={item <= 4 ? "#FF5252" : "#888"} 
+                      color={star <= Math.round(clinica.rating) ? "#FF5252" : "#888"} 
                       style={styles.starIcon}
                     />
                   ))}
@@ -205,7 +212,7 @@ const styles = StyleSheet.create({
   },
   clinicInfo: {
     marginBottom: 10,
-    marginTop: -170,
+    marginTop: -170, // Ajuste esse valor conforme necessário para o layout
   },
   clinicImage: {
     width: '100%',
@@ -251,6 +258,9 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
+  },
+  starIcon: {
+    marginRight: 2,
   },
   sectionTitle: {
     fontSize: 28,
