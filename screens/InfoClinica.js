@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    zIndex: 1000, // Garante que o header fique por cima
+    zIndex: 1000,
   },
   topBarContent: {
     flexDirection: 'row',
@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     padding: 15,
-    paddingTop: 25, // Espaço adicional do header
-    paddingBottom: 100, // Espaço para o footer
+    paddingTop: 25,
+    paddingBottom: 100,
   },
   clinicInfo: {
     marginBottom: 25,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   logoAndInfoContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 0, // Removido margin negativo
+    marginTop: 0, 
   },
   clinicLogo: {
     width: 120,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     overflow: 'hidden',
-    minHeight: 220, // Altura mínima para consistência
+    minHeight: 220,
   },
   serviceImageContainer: {
     alignItems: 'center',
