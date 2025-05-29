@@ -39,7 +39,6 @@ export default function InfoClinica() {
     return cleanCnpj;
   };
 
-  // Função para pegar a primeira letra da razão social
   const getFirstLetter = (razaoSocial) => {
     return razaoSocial ? razaoSocial.charAt(0).toUpperCase() : '?';
   };
