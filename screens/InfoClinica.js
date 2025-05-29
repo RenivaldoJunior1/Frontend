@@ -25,6 +25,25 @@ export default function InfoClinica() {
     return null;
   }
 
+  const formatCnpj = (cnpj) => {
+    if (!cnpj) return '';
+
+    const cleanCnpj = String(cnpj).replace(/\D/g, '');
+
+    if (cleanCnpj.length <= 14) {
+      return cleanCnpj.replace(
+        /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+        '$1.$2.$3/$4-$5'
+      );
+    }
+    return cleanCnpj;
+  };
+
+  // Função para pegar a primeira letra da razão social
+  const getFirstLetter = (razaoSocial) => {
+    return razaoSocial ? razaoSocial.charAt(0).toUpperCase() : '?';
+  };
+
   return (
     <>
       <LinearGradient
@@ -70,26 +89,35 @@ export default function InfoClinica() {
           </View>
         </LinearGradient>
 
-        <ScrollView 
+        <ScrollView
           style={styles.mainContent}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContentContainer}
         >
 
           <View style={styles.clinicInfo}>
-            
+
             <View style={styles.logoAndInfoContainer}>
-              <Image
-                source={clinica.imagem}
-                style={styles.clinicLogo}
-              />
+              {clinica.imagem ? (
+                <Image
+                  source={clinica.imagem}
+                  style={styles.clinicLogo}
+                />
+              ) : (
+                <View style={styles.clinicAvatar}>
+                  <Text style={styles.avatarText}>
+                    {getFirstLetter(clinica.razaoSocial)}
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.infoContainer}>
                 <Text style={styles.clinicName}>{clinica.nome}</Text>
                 <Text style={styles.clinicSubtitle}>
-                  {clinica.localizacao}.{"\n"}
-                  Atendimento 24 horas.{"\n"}
-                  Emergências e Consultas.
+                  Nome: {clinica.razaoSocial}.{"\n"}
+                  Email: {clinica.email}.{"\n"}
+                  CNPJ: {formatCnpj(clinica.cpfCnpj)}.{"\n"}
+                  Cidade: {clinica.cidade}.{"\n"}
                 </Text>
 
                 <View style={styles.ratingContainer}>
@@ -111,10 +139,10 @@ export default function InfoClinica() {
 
           <View style={styles.servicesContainer}>
             {[
-              {name: 'ULTRASSOM', image: ultrassomImg, desc: 'Ultrassom anual e preventiva'},
-              {name: 'CIRURGIA', image: cirurgiaImg, desc: 'Com veterinários especializados'},
-              {name: 'CONSULTAS', image: consultaImg, desc: 'Consultas variadas'},
-              {name: 'RAIO-X', image: raioxImg, desc: 'Raio-x específicos'}
+              { name: 'ULTRASSOM', image: ultrassomImg, desc: 'Ultrassom anual e preventiva' },
+              { name: 'CIRURGIA', image: cirurgiaImg, desc: 'Com veterinários especializados' },
+              { name: 'CONSULTAS', image: consultaImg, desc: 'Consultas variadas' },
+              { name: 'RAIO-X', image: raioxImg, desc: 'Raio-x específicos' }
             ].map((service, index) => (
               <View key={index} style={styles.serviceCard}>
                 <View style={styles.serviceImageContainer}>
@@ -221,13 +249,28 @@ const styles = StyleSheet.create({
   logoAndInfoContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 0, 
+    marginTop: 0,
   },
   clinicLogo: {
     width: 120,
     height: 120,
     borderRadius: 15,
     marginRight: 15,
+  },
+  clinicAvatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 15,
+    marginRight: 15,
+    backgroundColor: '#808080',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 48,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontFamily: 'ABeeZee',
   },
   infoContainer: {
     flex: 1,
@@ -242,7 +285,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   clinicSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Poppins',
     color: '#666',
     textAlign: 'left',

@@ -68,12 +68,28 @@ const EntityListScreen = ({ screenConfig }) => {
 
   }, [searchText, screenConfig.apiEndpoint]);
 
+  
+  const getFirstLetter = (item) => {
+    const name = item.razaoSocial || item.responsavelNome || '';
+    return name ? name.charAt(0).toUpperCase() : '?';
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, { width: cardWidth }]}
       onPress={() => navigation.navigate(screenConfig.navigateTo, { [screenConfig.paramName]: item })}
     >
-      <Image source={{ uri: item.imagem || 'https://via.placeholder.com/150' }} style={styles.cardImage} />
+     
+      {item.imagem ? (
+        <Image source={{ uri: item.imagem }} style={styles.cardImage} />
+      ) : (
+        <View style={styles.cardAvatar}>
+          <Text style={styles.cardAvatarText}>
+            {getFirstLetter(item)}
+          </Text>
+        </View>
+      )}
+      
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>{item.razaoSocial || item.responsavelNome}</Text>
         <View style={styles.infoRow}>
@@ -258,6 +274,19 @@ const styles = StyleSheet.create({
     height: 100,
     resizeMode: "cover",
   },
+  cardAvatar: {
+    width: "100%",
+    height: 100,
+    backgroundColor: "#808080",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardAvatarText: {
+    fontSize: 40, 
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontFamily: "ABeeZee",
+  },
   cardContent: {
     padding: 10,
   },
@@ -287,6 +316,5 @@ const styles = StyleSheet.create({
     color: '#666'
   },
 });
-
 
 export default EntityListScreen;
