@@ -77,7 +77,13 @@ const EntityListScreen = ({ screenConfig }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.card, { width: cardWidth }]}
-      onPress={() => navigation.navigate(screenConfig.navigateTo, { [screenConfig.paramName]: item })}
+      onPress={() => {
+        console.log('[EntityListScreen] Clicou em item:', JSON.stringify(item, null, 2));
+        console.log(`[EntityListScreen] Navegando para: ${screenConfig.navigateTo}`);
+        console.log(`[EntityListScreen] Com parâmetro nomeado '${screenConfig.paramName}' contendo o item acima.`);
+
+        navigation.navigate(screenConfig.navigateTo, { [screenConfig.paramName]: item })
+      }}
     >
      
       {item.imagem ? (

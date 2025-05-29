@@ -6,9 +6,9 @@ import { FontAwesome } from '@expo/vector-icons';
 const getResultTypeDetails = (type) => {
     switch (type) {
         case 'ONG':
-            return { icon: 'hospital-o', screen: 'PerfilOng' }; 
+            return { icon: 'hospital-o', screen: 'InfoOng' }; 
         case 'CLINICA':
-            return { icon: 'user-md', screen: 'PerfilClinica' };
+            return { icon: 'user-md', screen: 'InfoClinica' };
         case 'PET':
             return { icon: 'paw', screen: 'PetDetails' }; 
         default:

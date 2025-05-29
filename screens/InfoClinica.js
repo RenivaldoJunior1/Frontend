@@ -1,9 +1,20 @@
+import React, { useState, useEffect } from "react";
 import { StatusBar } from 'react-native';
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { 
+    StyleSheet, 
+    Text, 
+    View, 
+    SafeAreaView, 
+    Image, 
+    TextInput, 
+    ScrollView, 
+    TouchableOpacity,
+    ActivityIndicator 
+} from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 import LogoNav from '../assets/LogoNav.png';
 import ultrassomImg from '../assets/petultrassom.png';
@@ -19,29 +30,113 @@ export default function InfoClinica() {
   });
 
   const route = useRoute();
-  const { clinica } = route.params;
+  const navigation = useNavigation();
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  console.log('[InfoClinica] route.params recebidos:', JSON.stringify(route.params, null, 2));
+
+  const clinicaItemFromRoute = route.params?.clinica; 
+  const clinicaId = clinicaItemFromRoute?.id; 
+
+  console.log('[InfoClinica] route.params recebidos:', JSON.stringify(route.params, null, 2));
+  console.log('[InfoClinica] clinicaItemFromRoute:', JSON.stringify(clinicaItemFromRoute, null, 2));
+  console.log('[InfoClinica] clinicaId extraído:', clinicaId);
+
+  const [clinicaDetails, setClinicaDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!clinicaId) {
+      setError("ID da Clínica não fornecido.");
+      setLoading(false);
+      return;
+    }
+    console.log("Buscando detalhes para Clínica com ID:", clinicaId);
+
+    const fetchClinicaDetails = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const url = `https://pethopeapi.onrender.com/api/users/clinica/${clinicaId}`;
+        console.log("URL da API chamada:", url); 
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Erro da API (texto):", errorData);
+          try {
+            const jsonData = JSON.parse(errorData);
+            throw new Error(jsonData.message || `Erro ao buscar dados da Clínica: ${response.status}`);
+          } catch (parseError) {
+            throw new Error(errorData || `Erro ao buscar dados da Clínica: ${response.status}`);
+          }
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.data) {
+          setClinicaDetails(data.data);
+        } else {
+          console.warn("Resposta da API OK, mas 'data.data' está faltando ou é inválido:", data);
+          throw new Error("Formato de dados da Clínica inválido recebido da API.");
+        }
+      } catch (e) {
+        setError(e.message);
+        console.error("Erro ao buscar detalhes da Clínica:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClinicaDetails();
+  }, [clinicaId]);
 
   const formatCnpj = (cnpj) => {
     if (!cnpj) return '';
-
     const cleanCnpj = String(cnpj).replace(/\D/g, '');
-
-    if (cleanCnpj.length <= 14) {
+    if (cleanCnpj.length === 14) {
       return cleanCnpj.replace(
         /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
         '$1.$2.$3/$4-$5'
       );
     }
-    return cleanCnpj;
+    return cleanCnpj; 
   };
 
-  const getFirstLetter = (razaoSocial) => {
-    return razaoSocial ? razaoSocial.charAt(0).toUpperCase() : '?';
+  const getFirstLetter = (name) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
   };
+
+  if (!fontsLoaded || loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <ActivityIndicator size="large" color="#EC5475" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <Text>Erro ao carregar dados: {error}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, padding: 10, backgroundColor: '#EC5475', borderRadius: 5}}>
+            <Text style={{color: 'white'}}>Voltar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (!clinicaDetails) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <Text>Clínica não encontrada.</Text>
+         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, padding: 10, backgroundColor: '#EC5475', borderRadius: 5}}>
+            <Text style={{color: 'white'}}>Voltar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <>
@@ -49,13 +144,11 @@ export default function InfoClinica() {
         colors={['#EC5475', '#9C127C']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={styles.statusBarGradient}
       >
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       </LinearGradient>
 
-      <SafeAreaView style={styles.container}>
-
+      <SafeAreaView style={styles.container} edges={['right', 'bottom', 'left']}>
         <LinearGradient
           colors={['#EC5475', '#9C127C']}
           start={{ x: 0, y: 0 }}
@@ -63,79 +156,76 @@ export default function InfoClinica() {
           style={styles.topBar}
         >
           <View style={styles.topBarContent}>
-            <Image
-              source={LogoNav}
-              style={styles.logoNav}
+            <Image 
+              source={LogoNav} 
+              style={styles.logoNav} 
               resizeMode="contain"
             />
-
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={18} color="#F45B74" style={styles.searchIcon} />
-              <TextInput
-                placeholder="Pesquisar"
+              <TextInput 
+                placeholder="Pesquisar" 
                 placeholderTextColor="#F45B74"
                 style={styles.searchInput}
                 clearButtonMode="while-editing"
               />
             </View>
-
-            <View style={styles.profileCircle}>
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }}
+            <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+                <Image 
+                source={{ uri: clinicaDetails.profileImageUrl || 'https://randomuser.me/api/portraits/women/44.jpg' }}
                 style={styles.profileImage}
-              />
-            </View>
+                />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
-        <ScrollView
+        <ScrollView 
           style={styles.mainContent}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContentContainer}
         >
-
           <View style={styles.clinicInfo}>
-
             <View style={styles.logoAndInfoContainer}>
-              {clinica.imagem ? (
+              {clinicaDetails.logoUrl ? (
                 <Image
-                  source={clinica.imagem}
+                  source={{uri: clinicaDetails.logoUrl}}
                   style={styles.clinicLogo}
                 />
               ) : (
                 <View style={styles.clinicAvatar}>
                   <Text style={styles.avatarText}>
-                    {getFirstLetter(clinica.razaoSocial)}
+                    {getFirstLetter(clinicaDetails.razaoSocial || clinicaDetails.responsavelNome)}
                   </Text>
                 </View>
               )}
-
               <View style={styles.infoContainer}>
-                <Text style={styles.clinicName}>{clinica.nome}</Text>
+                <Text style={styles.clinicName}>{clinicaDetails.razaoSocial || clinicaDetails.responsavelNome}</Text>
                 <Text style={styles.clinicSubtitle}>
-                  Nome: {clinica.razaoSocial}.{"\n"}
-                  Email: {clinica.email}.{"\n"}
-                  CNPJ: {formatCnpj(clinica.cpfCnpj)}.{"\n"}
-                  Cidade: {clinica.cidade}.{"\n"}
+                  {clinicaDetails.responsavelNome && `Responsável: ${clinicaDetails.responsavelNome}.\n`}
+                  {clinicaDetails.email && `Email: ${clinicaDetails.email}.\n`}
+                  {clinicaDetails.cpfCnpj && `CNPJ: ${formatCnpj(clinicaDetails.cpfCnpj)}.\n`}
+                  {clinicaDetails.cidade && `Cidade: ${clinicaDetails.cidade}.`}
+                  {clinicaDetails.logradouro && `\nEndereço: ${clinicaDetails.logradouro}.`}
+                  {clinicaDetails.telefone && `\nTelefone: ${clinicaDetails.telefone}.`}
                 </Text>
-
-                <View style={styles.ratingContainer}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <FontAwesome
-                      key={star}
-                      name={star <= Math.round(clinica.rating) ? "star" : "star-o"}
-                      size={20}
-                      color={star <= Math.round(clinica.rating) ? "#FF5252" : "#888"}
-                      style={styles.starIcon}
-                    />
-                  ))}
-                </View>
+                {typeof clinicaDetails.rating === 'number' && (
+                    <View style={styles.ratingContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <FontAwesome 
+                        key={star} 
+                        name={star <= Math.round(clinicaDetails.rating) ? "star" : "star-o"} 
+                        size={20} 
+                        color={star <= Math.round(clinicaDetails.rating) ? "#FF5252" : "#D3D3D3"}
+                        style={styles.starIcon}
+                        />
+                    ))}
+                    </View>
+                )}
               </View>
             </View>
           </View>
 
           <Text style={styles.sectionTitle}>SERVIÇOS</Text>
-
           <View style={styles.servicesContainer}>
             {[
               { name: 'ULTRASSOM', image: ultrassomImg, desc: 'Ultrassom anual e preventiva' },
@@ -145,23 +235,20 @@ export default function InfoClinica() {
             ].map((service, index) => (
               <View key={index} style={styles.serviceCard}>
                 <View style={styles.serviceImageContainer}>
-                  <Image
-                    source={service.image}
+                  <Image 
+                    source={service.image} 
                     style={styles.serviceImage}
                   />
                 </View>
-
                 <View style={styles.serviceContent}>
                   <Text style={styles.serviceName}>{service.name}</Text>
                   <Text style={styles.serviceDescriptionText}>{service.desc}</Text>
                 </View>
-
                 <View style={styles.cardFooter}></View>
               </View>
             ))}
           </View>
         </ScrollView>
-
         <FooterNav />
       </SafeAreaView>
     </>

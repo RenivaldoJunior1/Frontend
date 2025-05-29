@@ -1,11 +1,13 @@
+import React, { useState, useEffect } from "react";
 import { StatusBar } from 'react-native';
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, TextInput, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 import LogoNav from '../assets/LogoNav.png';
-import ongLogo from '../assets/cli1.png';
+import ongLogoFallback from '../assets/cli1.png';
 import resgateImg from '../assets/petultrassom.png';
 import cuidadosImg from '../assets/petcirurgia.png';
 import doacaoImg from '../assets/petconsulta.png';
@@ -19,8 +21,94 @@ export default function InfoOng() {
     'Poppins': require('../assets/fonts/Poppins-Regular.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return null;
+  const route = useRoute();
+  const navigation = useNavigation();
+  
+  const ongItem = route.params?.ong; 
+  const ongId = ongItem?.id;        
+
+  const [ongDetails, setOngDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    console.log("Tentando carregar InfoOng com ID:", ongId, "e ongItem:", ongItem); 
+    
+    if (!ongId) {
+      setError("ID da ONG não fornecido.");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Buscando detalhes para ONG com ID:", ongId);
+
+    const fetchOngDetails = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const url = `https://pethopeapi.onrender.com/api/users/ong/${ongId}`;
+        console.log("URL da API chamada AGORA É:", url); 
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Erro da API (texto):", errorData);
+          try {
+            const jsonData = JSON.parse(errorData);
+            throw new Error(jsonData.message || `Erro ao buscar dados da ONG: ${response.status}`);
+          } catch (parseError) {
+            throw new Error(errorData || `Erro ao buscar dados da ONG: ${response.status}`);
+          }
+        }
+        
+        const data = await response.json();
+        
+        if (data && data.data) {
+          setOngDetails(data.data);
+        } else {
+          console.warn("Resposta da API OK, mas 'data.data' está faltando ou é inválido:", data);
+          throw new Error("Formato de dados da ONG inválido recebido da API.");
+        }
+      } catch (e) {
+        setError(e.message);
+        console.error("Erro ao buscar detalhes da ONG:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOngDetails();
+  }, [ongId]);
+
+  if (!fontsLoaded || loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <ActivityIndicator size="large" color="#EC5475" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <Text>Erro ao carregar dados: {error}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, padding: 10, backgroundColor: '#EC5475', borderRadius: 5}}>
+            <Text style={{color: 'white'}}>Voltar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (!ongDetails) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#FFF4EC" }}>
+        <Text>ONG não encontrada.</Text>
+         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, padding: 10, backgroundColor: '#EC5475', borderRadius: 5}}>
+            <Text style={{color: 'white'}}>Voltar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -29,13 +117,11 @@ export default function InfoOng() {
         colors={['#EC5475', '#9C127C']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={styles.statusBarGradient}
       >
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       </LinearGradient>
 
       <SafeAreaView style={styles.container} edges={['right', 'bottom', 'left']}>
-
         <LinearGradient
           colors={['#EC5475', '#9C127C']}
           start={{ x: 0, y: 0 }}
@@ -48,7 +134,6 @@ export default function InfoOng() {
               style={styles.logoNav} 
               resizeMode="contain"
             />
-
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={18} color="#F45B74" style={styles.searchIcon} />
               <TextInput 
@@ -58,54 +143,59 @@ export default function InfoOng() {
                 clearButtonMode="while-editing"
               />
             </View>
-
-            <View style={styles.profileCircle}>
-              <Image 
-                source={{ uri: 'https://randomuser.me/api/portraits/women/45.jpg' }}
+            <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+                <Image 
+                source={{ uri: ongDetails.profileImageUrl || 'https://randomuser.me/api/portraits/women/45.jpg' }}
                 style={styles.profileImage}
-              />
-            </View>
+                />
+            </TouchableOpacity>
           </View>
         </LinearGradient>
 
         <ScrollView style={styles.mainContent}>
-          
           <View style={styles.clinicInfo}>
             <Image 
-              source={{ uri: 'https://via.placeholder.com/350x150?text=ONG+Esperança' }} 
+              source={{ uri: ongDetails.imagemBannerUrl || 'https://via.placeholder.com/350x150?text=' + (ongDetails.razaoSocial || 'ONG') }} 
               style={styles.clinicImage}
             />
-
             <View style={styles.logoAndInfoContainer}>
               <Image 
-                source={ongLogo} 
+                source={ongDetails.logoUrl ? { uri: ongDetails.logoUrl } : ongLogoFallback} 
                 style={styles.clinicLogo}
               />
               <View style={styles.infoContainer}>
-                <Text style={styles.clinicName}>ONG ESPERANÇA</Text>
+                <Text style={styles.clinicName}>{ongDetails.razaoSocial || ongDetails.responsavelNome || 'Nome da ONG Indisponível'}</Text>
                 <Text style={styles.clinicSubtitle}>
-                  Protegendo vidas.{"\n"}
-                  Resgates, Adoções e Amor sem Limites.{"\n"}
-                  Junte-se a nós!
+                  {ongDetails.descricao || `Protegendo vidas.\nResgates, Adoções e Amor sem Limites.\nJunte-se a nós!`}
                 </Text>
-
-                <View style={styles.ratingContainer}>
-                  {[1, 2, 3, 4, 5].map((item) => (
-                    <FontAwesome 
-                      key={item} 
-                      name={"star"} 
-                      size={20} 
-                      color={"#FF5252"} 
-                      style={styles.starIcon}
-                    />
-                  ))}
-                </View>
+                {ongDetails.rating && (
+                    <View style={styles.ratingContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <FontAwesome 
+                        key={star} 
+                        name={star <= ongDetails.rating ? "star" : "star-o"} 
+                        size={20} 
+                        color={"#FF5252"} 
+                        style={styles.starIcon}
+                        />
+                    ))}
+                    </View>
+                )}
               </View>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>SERVIÇOS</Text>
+          <Text style={styles.sectionTitle}>INFORMAÇÕES</Text>
+          <View style={styles.detailsCard}>
+            {ongDetails.telefone && <Text style={styles.detailText}><FontAwesome name="phone" size={16} color="#C73578" /> {ongDetails.telefone}</Text>}
+            {ongDetails.email && <Text style={styles.detailText}><FontAwesome name="envelope" size={16} color="#C73578" /> {ongDetails.email}</Text>}
+            {ongDetails.logradouro && <Text style={styles.detailText}><FontAwesome name="map-marker" size={16} color="#C73578" /> {`${ongDetails.logradouro}, ${ongDetails.cidade || ''}`}</Text>}
+            {ongDetails.site && <Text style={styles.detailText}><FontAwesome name="globe" size={16} color="#C73578" /> {ongDetails.site}</Text>}
+            {ongDetails.urlInstagram && <Text style={styles.detailText}><FontAwesome name="instagram" size={16} color="#C73578" /> {ongDetails.urlInstagram}</Text>}
+            {ongDetails.urlFacebook && <Text style={styles.detailText}><FontAwesome name="facebook" size={16} color="#C73578" /> {ongDetails.urlFacebook}</Text>}
+          </View>
 
+          <Text style={styles.sectionTitle}>SERVIÇOS</Text>
           <View style={styles.servicesContainer}>
             {[
               {name: 'RESGATE DE ANIMAIS', image: resgateImg, desc: 'Atendimento emergencial a animais em risco.'},
@@ -127,7 +217,6 @@ export default function InfoOng() {
             ))}
           </View>
         </ScrollView>
-
         <FooterNav />
       </SafeAreaView>
     </>
