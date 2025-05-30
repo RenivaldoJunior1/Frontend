@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Image, Alert, SafeAreaView, ScrollView
+  Image, Alert, SafeAreaView, ScrollView, ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import styled from 'styled-components/native';
+import { MaskedTextInput } from "react-native-mask-text";
 import FooterNav from "../components/FooterNav";
 
 const HeaderContainer = styled(LinearGradient).attrs({
@@ -26,7 +27,6 @@ const HeaderContainer = styled(LinearGradient).attrs({
 
 const Header = () => {
   const navigation = useNavigation();
-
   return (
     <HeaderContainer>
       <Image source={require('../assets/PataHome.png')} style={styles.logo} />
@@ -50,8 +50,9 @@ const Header = () => {
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
-  const [tipoUsuario, setTipoUsuario] = useState('usuario');
-
+  
+  const [originalUser, setOriginalUser] = useState(null);
+  const [tipoUsuario, setTipoUsuario] = useState('USUARIO');
   const [userData, setUserData] = useState({
     email: '',
     phone: '',
@@ -63,23 +64,25 @@ export default function EditProfileScreen() {
     facebook: '',
     offersService: false,
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
-      const userJson = await AsyncStorage.getItem('currentUser');
+      const userJson = await AsyncStorage.getItem('usuarioAtual');
       if (userJson) {
         const user = JSON.parse(userJson);
-        setTipoUsuario(user.tipoUsuario || 'usuario');
+        setOriginalUser(user);
+        setTipoUsuario(user.tipo || 'USUARIO');
         setUserData({
           email: user.email || '',
-          phone: user.phone || '',
-          city: user.city || '',
-          address: user.address || '',
-          photo: user.photo || null,
+          phone: (user.telefone || '').replace(/\D/g, ''), 
+          city: user.cidade || '',
+          address: user.logradouro || user.endereco || '',
+          photo: user.photoUrl || user.photo || null,
           site: user.site || '',
-          instagram: user.instagram || '',
-          facebook: user.facebook || '',
-          offersService: user.offersService || false,
+          instagram: user.urlInstagram || '',
+          facebook: user.urlFacebook || '',
+          offersService: user.prestadorServico || false,
         });
       }
     };
@@ -92,44 +95,104 @@ export default function EditProfileScreen() {
       Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para alterar a foto.');
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
-
-    if (!result.canceled) {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
       setUserData({ ...userData, photo: result.assets[0].uri });
     }
   };
 
   const handleSave = async () => {
+    if (!originalUser || !originalUser.id) {
+      Alert.alert('Erro', 'Não foi possível identificar o usuário para salvar.');
+      return;
+    }
+
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) {
+      Alert.alert('Erro', 'Sessão expirada. Por favor, faça login novamente.');
+      navigation.navigate('Login');
+      return;
+    }
+
+    setIsSaving(true);
+
+    const apiPayload = {
+      telefone: userData.phone, 
+      cidade: userData.city,
+      endereco: userData.address,
+      site: userData.site,
+      urlInstagram: userData.instagram,
+      urlFacebook: userData.facebook,
+      prestadorServico: userData.offersService,
+    };
+    
+    const cleanPayload = {};
+    for (const key in apiPayload) {
+      if (apiPayload[key] !== undefined && 
+          apiPayload[key] !== null && 
+          (typeof apiPayload[key] === 'boolean' || apiPayload[key] !== '')
+      ) {
+        cleanPayload[key] = apiPayload[key];
+      } else if (key in apiPayload && originalUser && (originalUser[key] !== null && originalUser[key] !== undefined && originalUser[key] !== '')) {
+         if (key === 'telefone' || key === 'cidade' || key === 'endereco' || key === 'site' || key === 'urlInstagram' || key === 'urlFacebook') {
+            cleanPayload[key] = apiPayload[key]; 
+         }
+      }
+    }
+    if (typeof apiPayload.prestadorServico === 'boolean') {
+        cleanPayload.prestadorServico = apiPayload.prestadorServico;
+    }
+
     try {
-      const userJson = await AsyncStorage.getItem('currentUser');
-      if (userJson) {
-        const user = JSON.parse(userJson);
-        const updatedUser = {
-          ...user,
-          phone: userData.phone,
-          city: userData.city,
-          address: userData.address,
-          photo: userData.photo,
-          site: userData.site,
-          instagram: userData.instagram,
-          facebook: userData.facebook,
-          offersService: userData.offersService,
+      console.log('Enviando para API PATCH:', `https://pethopeapi.onrender.com/api/users/${originalUser.id}`, JSON.stringify(cleanPayload));
+      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${originalUser.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(cleanPayload),
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        const updatedUserFromApi = responseData.data || {};
+        const updatedUserForStorage = {
+          ...originalUser,
+          ...updatedUserFromApi,
+          photo: userData.photo, 
+          telefone: updatedUserFromApi.telefone || userData.phone,
+          cidade: updatedUserFromApi.cidade || userData.city,
+          logradouro: updatedUserFromApi.logradouro || updatedUserFromApi.endereco || userData.address,
+          site: updatedUserFromApi.site || userData.site,
+          urlInstagram: updatedUserFromApi.urlInstagram || userData.instagram,
+          urlFacebook: updatedUserFromApi.urlFacebook || userData.facebook,
+          prestadorServico: (typeof updatedUserFromApi.prestadorServico === 'boolean') ? updatedUserFromApi.prestadorServico : userData.offersService,
         };
-        await AsyncStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        
+        await AsyncStorage.setItem('usuarioAtual', JSON.stringify(updatedUserForStorage));
+        setOriginalUser(updatedUserForStorage); 
+        
         Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
         navigation.goBack();
+      } else {
+        Alert.alert('Erro ao salvar', responseData.message || 'Não foi possível atualizar o perfil na API.');
+        console.error('Erro da API ao salvar:', responseData);
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
-      console.error('Erro ao salvar perfil:', error);
+      Alert.alert('Erro', 'Ocorreu um erro de conexão ao salvar as alterações.');
+      console.error('Erro de rede ao salvar perfil:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
+  const fixedPhoneMask = "(99) 99999-9999";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -141,7 +204,7 @@ export default function EditProfileScreen() {
               <Image source={{ uri: userData.photo }} style={styles.profilePhoto} />
             ) : (
               <View style={styles.photoPlaceholder}>
-                <Ionicons name="person" size={50} color="#FFF" />
+                <Ionicons name="person-circle-outline" size={80} color="#FFF" />
               </View>
             )}
             <Text style={styles.changePhotoText}>Editar Foto</Text>
@@ -151,11 +214,17 @@ export default function EditProfileScreen() {
         <View style={styles.blueBox}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Telefone</Text>
-            <TextInput
-              style={styles.input}
+            <MaskedTextInput
+              mask={fixedPhoneMask}
               value={userData.phone}
-              onChangeText={(text) => setUserData({ ...userData, phone: text })}
-              keyboardType="phone-pad"
+              onChangeText={(text, rawText) => {
+                setUserData({ ...userData, phone: rawText });
+              }}
+              style={styles.input}
+              keyboardType="numeric"
+              placeholder="(xx) xxxxx-xxxx"
+              placeholderTextColor="#777"
+              editable={!isSaving}
             />
           </View>
 
@@ -165,6 +234,7 @@ export default function EditProfileScreen() {
               style={styles.input}
               value={userData.city}
               onChangeText={(text) => setUserData({ ...userData, city: text })}
+              editable={!isSaving}
             />
           </View>
 
@@ -174,6 +244,7 @@ export default function EditProfileScreen() {
               style={styles.input}
               value={userData.address}
               onChangeText={(text) => setUserData({ ...userData, address: text })}
+              editable={!isSaving}
             />
           </View>
 
@@ -186,7 +257,7 @@ export default function EditProfileScreen() {
             />
           </View>
 
-          {(tipoUsuario === 'ong' || tipoUsuario === 'clinica') && (
+          {(tipoUsuario === 'ONG' || tipoUsuario === 'CLINICA') && (
             <>
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Site</Text>
@@ -194,36 +265,40 @@ export default function EditProfileScreen() {
                   style={styles.input}
                   value={userData.site}
                   onChangeText={(text) => setUserData({ ...userData, site: text })}
+                  keyboardType="url"
+                  editable={!isSaving}
                 />
               </View>
-
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Instagram</Text>
+                <Text style={styles.label}>Instagram (URL)</Text>
                 <TextInput
                   style={styles.input}
                   value={userData.instagram}
                   onChangeText={(text) => setUserData({ ...userData, instagram: text })}
+                  keyboardType="url"
+                  editable={!isSaving}
                 />
               </View>
-
               <View style={styles.inputContainer}>
-                <Text style={styles.label}>Facebook</Text>
+                <Text style={styles.label}>Facebook (URL)</Text>
                 <TextInput
                   style={styles.input}
                   value={userData.facebook}
                   onChangeText={(text) => setUserData({ ...userData, facebook: text })}
+                  keyboardType="url"
+                  editable={!isSaving}
                 />
               </View>
-
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Oferece serviço?</Text>
-                <View style={{ flexDirection: 'row', gap: 20, marginTop: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 20, marginTop: 10, justifyContent:'center' }}>
                   <TouchableOpacity
                     onPress={() => setUserData({ ...userData, offersService: true })}
                     style={[
                       styles.toggleButton,
                       userData.offersService && styles.selectedToggle,
                     ]}
+                    disabled={isSaving}
                   >
                     <Text style={{ color: userData.offersService ? '#FFF' : '#000' }}>Sim</Text>
                   </TouchableOpacity>
@@ -233,6 +308,7 @@ export default function EditProfileScreen() {
                       styles.toggleButton,
                       !userData.offersService && styles.selectedToggle,
                     ]}
+                    disabled={isSaving}
                   >
                     <Text style={{ color: !userData.offersService ? '#FFF' : '#000' }}>Não</Text>
                   </TouchableOpacity>
@@ -241,8 +317,12 @@ export default function EditProfileScreen() {
             </>
           )}
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Salvar</Text>
+          <TouchableOpacity style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} onPress={handleSave} disabled={isSaving}>
+            {isSaving ? (
+                <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+                <Text style={styles.saveButtonText}>Salvar</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
