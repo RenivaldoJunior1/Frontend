@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Image, Alert, SafeAreaView, ScrollView, ActivityIndicator
@@ -54,23 +54,20 @@ export default function EditProfileScreen() {
   const [originalUser, setOriginalUser] = useState(null);
   const [tipoUsuario, setTipoUsuario] = useState('USUARIO');
   const [userData, setUserData] = useState({
-    email: '',
-    phone: '',
-    city: '',
-    address: '',
-    photo: null,
-    site: '',
-    instagram: '',
-    facebook: '',
-    offersService: false,
+    email: '', phone: '', city: '', address: '', photo: null,
+    site: '', instagram: '', facebook: '', offersService: false,
   });
   const [isSaving, setIsSaving] = useState(false);
 
+  console.log(`[EditProfileScreen Render] tipoUsuario: ${tipoUsuario}, userData:`, JSON.stringify(userData));
+
   useEffect(() => {
     const loadUserData = async () => {
+      console.log('[EditProfileScreen loadUserData] Iniciando carregamento...');
       const userJson = await AsyncStorage.getItem('usuarioAtual');
       if (userJson) {
         const user = JSON.parse(userJson);
+        console.log('[EditProfileScreen loadUserData] Usuário carregado do AsyncStorage:', user);
         setOriginalUser(user);
         setTipoUsuario(user.tipo || 'USUARIO');
         setUserData({
@@ -84,6 +81,9 @@ export default function EditProfileScreen() {
           facebook: user.urlFacebook || '',
           offersService: user.prestadorServico || false,
         });
+        console.log('[EditProfileScreen loadUserData] Estados definidos após carregamento.');
+      } else {
+        console.log('[EditProfileScreen loadUserData] Nenhum usuário encontrado no AsyncStorage.');
       }
     };
     loadUserData();
@@ -102,7 +102,7 @@ export default function EditProfileScreen() {
       quality: 1,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      setUserData({ ...userData, photo: result.assets[0].uri });
+      updateUserDataField('photo', result.assets[0].uri);
     }
   };
 
@@ -192,7 +192,21 @@ export default function EditProfileScreen() {
       setIsSaving(false);
     }
   };
+
   const fixedPhoneMask = "(99) 99999-9999";
+  
+  const updateUserDataField = (field, value) => {
+    console.log(`[updateUserDataField] Tentando atualizar campo: ${field}, Novo valor:`, value);
+    setUserData(prevUserData => {
+      console.log(`[updateUserDataField] Estado anterior para ${field}:`, prevUserData[field]);
+      if (prevUserData[field] !== value) {
+        console.log(`[updateUserDataField] VALOR DIFERENTE! ATUALIZANDO ESTADO para o campo: ${field} com valor:`, value);
+        return { ...prevUserData, [field]: value };
+      }
+      console.log(`[updateUserDataField] Valor é o mesmo. Nenhuma atualização de estado para o campo: ${field}.`);
+      return prevUserData;
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -217,8 +231,9 @@ export default function EditProfileScreen() {
             <MaskedTextInput
               mask={fixedPhoneMask}
               value={userData.phone}
-              onChangeText={(text, rawText) => {
-                setUserData({ ...userData, phone: rawText });
+              onChangeText={(maskedText, rawText) => {
+                console.log(`[Telefone onChangeText] masked: ${maskedText}, raw: ${rawText}`);
+                updateUserDataField('phone', rawText);
               }}
               style={styles.input}
               keyboardType="numeric"
@@ -233,17 +248,20 @@ export default function EditProfileScreen() {
             <TextInput
               style={styles.input}
               value={userData.city}
-              onChangeText={(text) => setUserData({ ...userData, city: text })}
+              onChangeText={(text) => {
+                console.log(`[Cidade onChangeText] texto: ${text}`);
+                updateUserDataField('city', text);
+              }}
               editable={!isSaving}
             />
           </View>
-
+          
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Endereço</Text>
             <TextInput
               style={styles.input}
               value={userData.address}
-              onChangeText={(text) => setUserData({ ...userData, address: text })}
+              onChangeText={(text) => updateUserDataField('address', text)}
               editable={!isSaving}
             />
           </View>
@@ -264,7 +282,7 @@ export default function EditProfileScreen() {
                 <TextInput
                   style={styles.input}
                   value={userData.site}
-                  onChangeText={(text) => setUserData({ ...userData, site: text })}
+                  onChangeText={(text) => updateUserDataField('site', text)}
                   keyboardType="url"
                   editable={!isSaving}
                 />
@@ -274,7 +292,7 @@ export default function EditProfileScreen() {
                 <TextInput
                   style={styles.input}
                   value={userData.instagram}
-                  onChangeText={(text) => setUserData({ ...userData, instagram: text })}
+                  onChangeText={(text) => updateUserDataField('instagram', text)}
                   keyboardType="url"
                   editable={!isSaving}
                 />
@@ -284,7 +302,7 @@ export default function EditProfileScreen() {
                 <TextInput
                   style={styles.input}
                   value={userData.facebook}
-                  onChangeText={(text) => setUserData({ ...userData, facebook: text })}
+                  onChangeText={(text) => updateUserDataField('facebook', text)}
                   keyboardType="url"
                   editable={!isSaving}
                 />
@@ -293,7 +311,7 @@ export default function EditProfileScreen() {
                 <Text style={styles.label}>Oferece serviço?</Text>
                 <View style={{ flexDirection: 'row', gap: 20, marginTop: 10, justifyContent:'center' }}>
                   <TouchableOpacity
-                    onPress={() => setUserData({ ...userData, offersService: true })}
+                    onPress={() => updateUserDataField('offersService', true)}
                     style={[
                       styles.toggleButton,
                       userData.offersService && styles.selectedToggle,
@@ -303,7 +321,7 @@ export default function EditProfileScreen() {
                     <Text style={{ color: userData.offersService ? '#FFF' : '#000' }}>Sim</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => setUserData({ ...userData, offersService: false })}
+                    onPress={() => updateUserDataField('offersService', false)}
                     style={[
                       styles.toggleButton,
                       !userData.offersService && styles.selectedToggle,
