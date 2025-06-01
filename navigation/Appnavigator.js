@@ -24,6 +24,7 @@ import NotificacoesScreen from '../screens/NotificacoesScreen';
 import InfoONG from '../screens/InfoONG';
 import DicasScreen from '../screens/DicasScreen';
 import CuidadosScreen from '../screens/CuidadosScreen';
+import LogoutScreen from '../screens/LogoutScreen';
 
 const Stack = createStackNavigator();
 
@@ -54,6 +55,7 @@ export default function AppNavigator() {
         <Stack.Screen name="AnimalDetail" component={AnimalDetailScreen} />
         <Stack.Screen name="Adocao" component={AdocaoScreen}/>
         <Stack.Screen name="Notificacoes" component={NotificacoesScreen}/>
+        <Stack.Screen name="Menu" component={LogoutScreen}/>
       
       </Stack.Navigator>
     </NavigationContainer>

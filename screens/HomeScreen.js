@@ -39,8 +39,6 @@ const categoryOptions = [
   { display: 'Clínicas', value: 'CLINICA' }
 ];
 
-const { width } = Dimensions.get('window');
-
 const HomeScreen = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
