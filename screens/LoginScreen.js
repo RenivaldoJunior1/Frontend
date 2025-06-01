@@ -24,7 +24,7 @@ export default function LoginScreen() {
   
     setLoading(true);
     try {
-      const loginResponse = await fetch('https://pethopeapi.onrender.com/api/users/login', {
+      const loginResponse = await fetch('https://pethopeapi.onrender.com/api/v1/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userEmail, password: userPassword }),
@@ -42,7 +42,7 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('userToken', token);
       console.log("Token recebido e salvo com sucesso.");
 
-      const usersResponse = await fetch('https://pethopeapi.onrender.com/api/users', {
+      const usersResponse = await fetch('https://pethopeapi.onrender.com/api/v1/users', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

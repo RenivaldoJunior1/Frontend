@@ -4,7 +4,7 @@ import EntityListScreen from "../components/EntityListScreen";
 const ongConfig = {
     title: 'ONGs',
     filterType: 'ONG',
-    apiEndpoint: 'https://pethopeapi.onrender.com/api/users',
+    apiEndpoint: 'https://pethopeapi.onrender.com/api/v1/users',
     navigateTo: 'InfoOng',
     paramName: 'ong',
 };

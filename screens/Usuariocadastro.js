@@ -101,7 +101,7 @@ export default function CadastroUsuarioScreen() {
         password: senha
       };
       
-      const response = await fetch('https://pethopeapi.onrender.com/api/users', {
+      const response = await fetch('https://pethopeapi.onrender.com/api/v1/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

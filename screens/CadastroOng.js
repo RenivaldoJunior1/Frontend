@@ -123,7 +123,7 @@ export default function CadastroClinicascreen() {
         dadosONG.tipoServico = tipoServico;
       }
     
-      const response = await fetch('https://pethopeapi.onrender.com/api/users/ong', {
+      const response = await fetch('https://pethopeapi.onrender.com/api/v1/users/ong', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

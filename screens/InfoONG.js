@@ -46,7 +46,7 @@ export default function InfoOng() {
       setLoading(true);
       setError(null);
       try {
-        const url = `https://pethopeapi.onrender.com/api/users/ong/${ongId}`;
+        const url = `https://pethopeapi.onrender.com/api/v1/users/ong/${ongId}`;
         console.log("URL da API chamada AGORA É:", url); 
         
         const response = await fetch(url);

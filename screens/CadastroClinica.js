@@ -98,7 +98,7 @@ export default function CadastroClinicascreen() {
 
       console.log(dadosClinica)
 
-      const resposta = await fetch('https://pethopeapi.onrender.com/api/users/clinica', {
+      const resposta = await fetch('https://pethopeapi.onrender.com/api/v1/users/clinica', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

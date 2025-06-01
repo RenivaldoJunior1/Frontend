@@ -57,7 +57,7 @@ export default function InfoClinica() {
       setLoading(true);
       setError(null);
       try {
-        const url = `https://pethopeapi.onrender.com/api/users/clinica/${clinicaId}`;
+        const url = `https://pethopeapi.onrender.com/api/v1/users/clinica/${clinicaId}`;
         console.log("URL da API chamada:", url); 
         
         const response = await fetch(url);

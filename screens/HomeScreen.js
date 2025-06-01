@@ -73,7 +73,7 @@ const HomeScreen = () => {
     console.log('[HomeScreen performSearch] Query:', query, 'Filtros Aplicados:', currentAppliedFilters);
     setIsSearching(true);
     try {
-      let url = `https://pethopeapi.onrender.com/api/users`;
+      let url = `https://pethopeapi.onrender.com/v1/api/users`;
       const queryParams = [];
       if (lowercasedQuery) {
         queryParams.push(`q=${lowercasedQuery}`);

@@ -149,8 +149,8 @@ export default function EditProfileScreen() {
     }
 
     try {
-      console.log('Enviando para API PATCH:', `https://pethopeapi.onrender.com/api/users/${originalUser.id}`, JSON.stringify(cleanPayload));
-      const response = await fetch(`https://pethopeapi.onrender.com/api/users/${originalUser.id}`, {
+      console.log('Enviando para API PATCH:', `https://pethopeapi.onrender.com/api/v1/users/${originalUser.id}`, JSON.stringify(cleanPayload));
+      const response = await fetch(`https://pethopeapi.onrender.com/api/v1/users/${originalUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

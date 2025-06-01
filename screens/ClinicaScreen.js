@@ -4,7 +4,7 @@ import EntityListScreen from "../components/EntityListScreen";
 const clinicaConfig = {
     title: 'Clínicas',
     filterType: 'CLINICA', 
-    apiEndpoint: 'https://pethopeapi.onrender.com/api/users',
+    apiEndpoint: 'https://pethopeapi.onrender.com/api/v1/users',
     navigateTo: 'InfoClinica',
     paramName: 'clinica',
 };
